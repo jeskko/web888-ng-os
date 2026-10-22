@@ -4,8 +4,8 @@
 # partition, empty at first: web888d keeps its configuration and state
 # (the self-signed certificate) there, written only when they change.
 # A/B root slots for RAUC come later (docs/os-base.md in web888-ng-hw).
-# fstab entries for /boot and /config come from base-files (with their
-# options: /boot read-only), not from wic
-part /boot   --source rootfs --change-directory=boot --fixed-size=512M --fstype=vfat --use-label --label boot --active --align 4 --no-fstab-update
+# fstab entries come from base-files (with their options: /boot
+# read-only), not from wic: WIC_CREATE_EXTRA_ARGS in the machine config
+part /boot   --source rootfs --change-directory=boot --fixed-size=512M --fstype=vfat --use-label --label boot --active --align 4
 part /       --source rootfs --exclude-path=boot/                       --fstype=ext4 --use-label --label root  --align 4
-part /config                                         --fixed-size=32M  --fstype=ext4 --use-label --label config --align 4 --no-fstab-update
+part /config                                         --fixed-size=32M  --fstype=ext4 --use-label --label config --align 4
