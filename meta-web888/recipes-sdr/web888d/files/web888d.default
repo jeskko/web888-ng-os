@@ -1,0 +1,4 @@
+# web888d command line. The bitstream is loaded through the FPGA manager
+# before /dev/zynqsdr is opened; put it on the boot partition (FAT, mounted
+# read-only at /boot).
+WEB888D_ARGS="serve --bitstream /boot/web888-pl.bit"

@@ -1,0 +1,14 @@
+[Unit]
+Description=web888-ng SDR server
+# the bitstream is read from the boot partition
+RequiresMountsFor=/boot
+After=systemd-modules-load.service
+
+[Service]
+EnvironmentFile=/etc/default/web888d
+ExecStart=/usr/bin/web888d $WEB888D_ARGS
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

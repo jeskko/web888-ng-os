@@ -9,17 +9,25 @@ QEMU virtual Web-888) and [web888-ng](https://github.com/jeskko/web888-ng)
 
 Status: **bring-up**. The image builds (linux-xlnx 6.18 LTS, systemd,
 ~42 MB squashfs) and boots in the QEMU virtual Web-888 of web888-ng-hw
-with a read-only root; the open `web888-sdr` driver loads automatically
-and web888d streams through it. Next: our own device tree, RAUC A/B with
-the config partition, and the boot files for the real board.
+with a read-only root. The open `web888-sdr` driver loads automatically;
+the `web888d` service loads the bitstream from the boot partition through
+the FPGA manager and serves HPSDR (port 1024).
+
+The bitstream is not in the image yet: copy an open bitstream
+(web888-ng-hw `fpga/build/hf/websdr_hf.bit`) to the FAT boot partition
+as `web888-pl.bit` (mounted read-only at `/boot`; command line in
+`/etc/default/web888d`). Planned: bitstreams built by CI and fetched by a
+recipe from web888-ng-hw releases. Next also: our own device tree, RAUC
+A/B with the config partition, and the boot files for the real board.
 
 Development image (empty root password, never for release):
 `kas-container build kas/web888.yml:kas/dev.yml`. Boot it in the
 emulator with `emu/run.sh --kernel <zImage> --initrd none --sd
 <image>.wic.qemu-sd --append "console=ttyPS0,115200 root=/dev/mmcblk0p2
-rootwait ro web888_sdr.pl_check=0"` (`pl_check=0`: nothing loads a
-bitstream through fpga_manager in the emulator yet, so the open driver's
-PL readiness check would refuse). Why Yocto and the planned SD
+rootwait ro"`; put the bitstream into a copy of the image first
+(`mcopy -i <copy>@@4096 websdr_hf.bit ::web888-pl.bit`). Without a
+bitstream, add `web888_sdr.pl_check=0` to use the open driver directly
+(the PL readiness check would refuse). Why Yocto and the planned SD
 layout: `docs/os-base.md` in web888-ng-hw.
 
 ## Goals
