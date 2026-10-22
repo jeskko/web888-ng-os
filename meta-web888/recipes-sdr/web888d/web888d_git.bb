@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 SUMMARY = "web888-ng SDR server"
 DESCRIPTION = "Runs the Web-888 receiver through /dev/zynqsdr (open or stock \
-driver) and serves its channels (HPSDR Protocol 1)."
+driver) and serves its channels (HPSDR Protocol 1) and the web UI (8073)."
 HOMEPAGE = "https://github.com/jeskko/web888-ng"
 LICENSE = "GPL-3.0-or-later"
 LIC_FILES_CHKSUM = "file://COPYING;md5=75d892af193fd5a298f724c4377d8f62"
@@ -10,8 +10,9 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-SRCREV = "e7c7abe1c3ee42682e9dd48a938cf767a3311406"
-PV = "0.1+git"
+# v0.1.0
+SRCREV = "cf6c5c51f2f8e33e7ddaf1dfcc1d56d591beb4ab"
+PV = "0.1.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
 
@@ -29,4 +30,4 @@ do_install:append() {
 }
 
 SYSTEMD_SERVICE:${PN} = "web888d.service"
-RDEPENDS:${PN} += "web888-sdr kernel-module-web888-sdr web888-bitstream"
+RDEPENDS:${PN} += "web888-sdr kernel-module-web888-sdr web888-bitstream web888d-ui"

@@ -4,4 +4,10 @@
 # on the boot partition (FAT, read-only at /boot) and use
 # `--bitstream /boot/<file>.bit`; this file lives on the read-only root
 # until the configuration partition exists.
+#
+# The web UI (package web888d-ui) is served on 8073, HTTPS and plain HTTP
+# on one port. Its self-signed certificate would be kept in
+# /var/lib/web888d, which is read-only for now: a new one is made at each
+# start, so browsers ask again after every reboot. `--tls-cert/--tls-key`
+# point at a fixed pair (e.g. on /boot).
 WEB888D_ARGS="serve"
