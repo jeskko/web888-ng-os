@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Development image: passwordless root login on the console and over ssh.
+#   kas-container build kas/web888.yml:kas/dev.yml
+# Never for release images.
+header:
+  version: 14
+
+local_conf_header:
+  dev: |
+    EXTRA_IMAGE_FEATURES += "allow-empty-password empty-root-password allow-root-login"

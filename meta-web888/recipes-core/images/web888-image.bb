@@ -8,5 +8,7 @@ inherit core-image
 # (read-write only while saving). RAUC A/B comes next.
 IMAGE_FEATURES += "read-only-rootfs ssh-server-dropbear"
 
+IMAGE_INSTALL += "web888-sdr"
+
 IMAGE_LINGUAS = ""
 IMAGE_FSTYPES += "squashfs-xz"
