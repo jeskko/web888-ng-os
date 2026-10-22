@@ -19,6 +19,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: pipx install kas==5.5
       - run: kas dump kas/web888.yml > /dev/null
+      - run: kas dump kas/web888.yml:kas/mirror.yml > /dev/null
+        env:
+          WEB888_MIRROR: http://mirror.invalid
 
   # Full image build on the project's self-hosted runner. Never runs for
   # pull requests (fork code must not reach the runner), and stays off

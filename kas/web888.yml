@@ -46,6 +46,4 @@ local_conf_header:
   web888: |
     # remove work directories after each recipe: keeps a build under ~60 GB
     INHERIT += "rm_work"
-    # source mirror / shared-state cache (set on CI and for contributors):
-    # SSTATE_MIRRORS ?= "file://.* http://<mirror>/sstate/PATH;downloadfilename=PATH"
-    # PREMIRRORS:prepend = "git://.*/.* http://<mirror>/downloads/ \n https?://.*/.* http://<mirror>/downloads/ \n"
+    # shared-state / download mirror: add kas/mirror.yml

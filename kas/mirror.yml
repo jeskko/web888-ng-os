@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Use the project's read-only mirror (shared state + source downloads):
+#   WEB888_MIRROR=http://<host> kas-container build kas/web888.yml:kas/mirror.yml
+header:
+  version: 14
+
+env:
+  WEB888_MIRROR: null
+
+local_conf_header:
+  mirror: |
+    SSTATE_MIRRORS ?= "file://.* ${WEB888_MIRROR}/sstate/PATH;downloadfilename=PATH"
+    PREMIRRORS:prepend = "git://.*/.* ${WEB888_MIRROR}/downloads/ \
+                          https?://.*/.* ${WEB888_MIRROR}/downloads/ "
