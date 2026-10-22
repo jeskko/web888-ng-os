@@ -37,6 +37,8 @@ install -m 640 -g runner /dev/null /etc/web888-runner/env
 #   edit /etc/web888-runner/env:
 #     RUNNER_REPO=jeskko/web888-ng-os
 #     GH_PAT=<fine-grained token>
+#     RUNNER_WORK=/data/runner-work   (job workspace on the data disk; a
+#                                      build needs ~60 GB, the system disk won't do)
 install -m 644 web888-runner.service /etc/systemd/system/
 
 install -m 644 nginx-mirror.conf /etc/nginx/sites-available/yocto-mirror
