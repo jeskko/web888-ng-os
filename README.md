@@ -7,9 +7,17 @@ Part of web888-ng, together with
 QEMU virtual Web-888) and [web888-ng](https://github.com/jeskko/web888-ng)
 (the `web888d` server).
 
-Status: **bring-up**. The image builds on a generic Zynq-7000 machine. Our
-device tree, kernel (6.18 LTS with `fpga_manager`), RAUC A/B updates and
-the boot files for the real board are next. Why Yocto and the planned SD
+Status: **bring-up**. The image builds (linux-xlnx 6.18 LTS, systemd,
+~42 MB squashfs) and boots in the QEMU virtual Web-888 of web888-ng-hw
+with a read-only root; the open `web888-sdr` driver loads automatically
+and web888d streams through it. Next: our own device tree, RAUC A/B with
+the config partition, and the boot files for the real board.
+
+Development image (empty root password, never for release):
+`kas-container build kas/web888.yml:kas/dev.yml`. Boot it in the
+emulator with `emu/run.sh --kernel <zImage> --initrd none --sd
+<image>.wic.qemu-sd --append "console=ttyPS0,115200 root=/dev/mmcblk0p2
+rootwait ro"`. Why Yocto and the planned SD
 layout: `docs/os-base.md` in web888-ng-hw.
 
 ## Goals
