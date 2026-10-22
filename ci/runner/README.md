@@ -106,21 +106,36 @@ Variables), which turns on the jobs that need these runners.
 
 ## Migrating from the single-instance setup
 
+As root on the VM. Enables the os instance only; add hw once `hw.env` and
+the licence exist.
+
 ```
 systemctl disable --now web888-runner
 rm /etc/systemd/system/web888-runner.service
-cd /etc/web888-runner && grep -v '^RUNNER_REPO=' env > env.new   # keep GH_PAT, RUNNER_WORK
+runuser -u runner -- env XDG_RUNTIME_DIR=/run/user/$(id -u runner) podman rm -f web888-runner
+
+# split the configuration (keep GH_PAT and RUNNER_WORK in env)
+cd /etc/web888-runner
+grep -v '^RUNNER_REPO=' env > env.new && mv env.new env
 printf 'RUNNER_REPO=jeskko/web888-ng-os\nRUNNER_LABELS=yocto\nRUNNER_PODMAN_ARGS="-v /srv/yocto:/srv/yocto"\n' > os.env
-#   write hw.env and xilinx.lic as above; then fix modes:
-mv env.new env && chown root:runner env os.env hw.env xilinx.lic && chmod 640 env os.env hw.env xilinx.lic
-#   then the updated script, unit and image as in Setup:
+chown root:runner env os.env && chmod 640 env os.env
+
+# new script, unit and image (from this directory of the repo)
+cd "$(mktemp -d)"
+for f in web888-runner.sh web888-runner@.service Containerfile entrypoint.sh; do
+    curl -fsSLO "https://raw.githubusercontent.com/jeskko/web888-ng-os/main/ci/runner/$f"
+done
 install -m 755 web888-runner.sh /usr/local/bin/
 install -m 644 web888-runner@.service /etc/systemd/system/
 cp Containerfile entrypoint.sh /var/lib/runner/
 runuser -u runner -- env XDG_RUNTIME_DIR=/run/user/$(id -u runner) \
     sh -c 'cd ~ && podman build -t localhost/web888-runner:latest .'
-systemctl daemon-reload && systemctl enable --now web888-runner@os web888-runner@hw
+systemctl daemon-reload && systemctl enable --now web888-runner@os
 ```
+
+Later, for hw: write `hw.env` and `xilinx.lic` (root:runner, 0640),
+then `systemctl enable --now web888-runner@hw`. Check the repositories'
+runner lists (Settings → Actions → Runners) for stale offline entries.
 
 Old job workspaces move from `$RUNNER_WORK` to `$RUNNER_WORK/<instance>`;
 the old contents can be deleted.
