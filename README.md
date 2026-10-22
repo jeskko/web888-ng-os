@@ -17,7 +17,9 @@ Development image (empty root password, never for release):
 `kas-container build kas/web888.yml:kas/dev.yml`. Boot it in the
 emulator with `emu/run.sh --kernel <zImage> --initrd none --sd
 <image>.wic.qemu-sd --append "console=ttyPS0,115200 root=/dev/mmcblk0p2
-rootwait ro"`. Why Yocto and the planned SD
+rootwait ro web888_sdr.pl_check=0"` (`pl_check=0`: nothing loads a
+bitstream through fpga_manager in the emulator yet, so the open driver's
+PL readiness check would refuse). Why Yocto and the planned SD
 layout: `docs/os-base.md` in web888-ng-hw.
 
 ## Goals

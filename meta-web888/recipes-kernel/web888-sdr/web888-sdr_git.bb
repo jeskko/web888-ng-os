@@ -8,7 +8,7 @@ LICENSE = "GPL-2.0-or-later"
 LIC_FILES_CHKSUM = "file://web888_sdr.c;beginline=1;endline=1;md5=7226e442a172bcf25807246d7ef1eba1"
 
 SRC_URI = "git://github.com/jeskko/web888-ng-hw.git;protocol=https;branch=main"
-SRCREV = "6efd39db6609e3fc0b802ca03f7d86faaeb27b53"
+SRCREV = "323f97b47c5f26997e667fc0da0762edb2be4dc4"
 PV = "0.1+git"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}/driver"
