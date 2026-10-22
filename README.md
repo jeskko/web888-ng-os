@@ -37,6 +37,10 @@ Needs podman or docker; the build runs in the kas container. Plan for
 kas-container build kas/web888.yml
 ```
 
+With rootless podman, `kas-container`'s user switching can fail; use
+`KAS_WORK=<build dir> scripts/kas-podman.sh build kas/web888.yml` from a
+plain clone instead.
+
 Output lands in `build/tmp/deploy/images/web888/`.
 
 ## CI
