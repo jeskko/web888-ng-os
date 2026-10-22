@@ -6,4 +6,5 @@
 # A/B root slots for RAUC come later (docs/os-base.md in web888-ng-hw).
 part /boot   --source rootfs --change-directory=boot --fixed-size=512M --fstype=vfat --use-label --label boot --active --align 4
 part /       --source rootfs --exclude-path=boot/                       --fstype=ext4 --use-label --label root  --align 4
-part /config                                         --fixed-size=32M  --fstype=ext4 --use-label --label config --align 4
+# fstab entry from base-files (its options), not from wic
+part /config                                         --fixed-size=32M  --fstype=ext4 --use-label --label config --align 4 --no-fstab-update
