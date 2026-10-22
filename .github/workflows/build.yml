@@ -36,6 +36,10 @@ jobs:
     needs: config
     runs-on: [self-hosted, linux, yocto]
     timeout-minutes: 600
+    env:
+      # layer clones borrow objects from persistent reference repos (kas
+      # creates them on first use); only new commits come from the network
+      KAS_REPO_REF_DIR: /srv/yocto/repos
     steps:
       - uses: actions/checkout@v4
       - name: build

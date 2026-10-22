@@ -2,7 +2,8 @@
 
 Builds the image for pushes to `main` and tags of this repository (never
 for pull requests; see `.github/workflows/build.yml`). One container per
-job, discarded afterwards. Only the Yocto caches in `/srv/yocto` persist,
+job, discarded afterwards. Only the Yocto caches in `/srv/yocto` persist
+(downloads, sstate, and `repos/`: kas reference clones of the layers),
 and nginx serves them read-only as a mirror for local builds.
 
 ## VM
