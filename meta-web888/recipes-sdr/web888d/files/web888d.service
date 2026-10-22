@@ -4,10 +4,14 @@ Description=web888-ng SDR server
 # web888-sdr); without it, start fails after the device timeout.
 Requires=dev-zynqsdr.device
 After=dev-zynqsdr.device local-fs.target
+# configuration and state (nofail mount: without it, web888d runs on defaults)
+Wants=config.mount
+After=config.mount
 
 [Service]
 EnvironmentFile=/etc/default/web888d
 ExecStart=/usr/bin/web888d $WEB888D_ARGS
+ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=5
 

@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Web-888 SD card: FAT boot partition (boot files, bitstreams), the root
+# file system (mounted read-only), and a small ext4 configuration
+# partition, empty at first: web888d keeps its configuration and state
+# (the self-signed certificate) there, written only when they change.
+# A/B root slots for RAUC come later (docs/os-base.md in web888-ng-hw).
+part /boot   --source rootfs --change-directory=boot --fixed-size=512M --fstype=vfat --use-label --label boot --active --align 4
+part /       --source rootfs --exclude-path=boot/                       --fstype=ext4 --use-label --label root  --align 4
+part /config                                         --fixed-size=32M  --fstype=ext4 --use-label --label config --align 4

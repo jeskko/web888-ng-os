@@ -1,13 +1,12 @@
-# web888d command line. `--bitstream auto` loads the variant's bitstream
-# from /usr/share/web888 (package web888-bitstream) through the FPGA
-# manager before /dev/zynqsdr is opened. To try another bitstream, put it
-# on the boot partition (FAT, read-only at /boot) and use
-# `--bitstream /boot/<file>.bit`; this file lives on the read-only root
-# until the configuration partition exists.
+# web888d command line. Settings belong in the configuration file on the
+# configuration partition (ext4, mounted at /config): /config/web888d.toml.
+# A missing file means defaults; `web888d serve --print-config` prints all
+# keys with their current values, as a template. Changes are picked up
+# within seconds (or `systemctl reload web888d`); radio/HPSDR/listen
+# settings say they need a restart.
 #
-# The web UI (package web888d-ui) is served on 8073, HTTPS and plain HTTP
-# on one port. Its self-signed certificate would be kept in
-# /var/lib/web888d, which is read-only for now: a new one is made at each
-# start, so browsers ask again after every reboot. `--tls-cert/--tls-key`
-# point at a fixed pair (e.g. on /boot).
-WEB888D_ARGS="serve"
+# The web UI's self-signed certificate is kept in /config/web888d. The
+# bitstream comes from /usr/share/web888 (package web888-bitstream,
+# `[radio] bitstream = "auto"`); to try another, put it on the boot
+# partition (FAT, read-only at /boot) and set `bitstream = "/boot/<file>.bit"`.
+WEB888D_ARGS="serve --config /config/web888d.toml --state-dir /config/web888d"

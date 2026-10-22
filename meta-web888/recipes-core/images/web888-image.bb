@@ -8,7 +8,8 @@ inherit core-image
 # (read-write only while saving). RAUC A/B comes next.
 IMAGE_FEATURES += "read-only-rootfs ssh-server-dropbear"
 
-IMAGE_INSTALL += "web888-sdr web888d"
+# e2fsck: the configuration partition is checked at boot (fstab pass 2)
+IMAGE_INSTALL += "web888-sdr web888d e2fsprogs-e2fsck"
 
 IMAGE_LINGUAS = ""
 IMAGE_FSTYPES += "squashfs-xz"

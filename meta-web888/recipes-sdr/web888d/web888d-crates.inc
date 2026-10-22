@@ -126,6 +126,7 @@ SRC_URI += " \
     crate://crates.io/serde_derive/1.0.229 \
     crate://crates.io/serde_json/1.0.154 \
     crate://crates.io/serde_path_to_error/0.1.20 \
+    crate://crates.io/serde_spanned/1.1.2 \
     crate://crates.io/serde_urlencoded/0.7.1 \
     crate://crates.io/sha1/0.10.7 \
     crate://crates.io/sha1/0.11.0 \
@@ -154,6 +155,10 @@ SRC_URI += " \
     crate://crates.io/tokio-tungstenite/0.29.0 \
     crate://crates.io/tokio-tungstenite/0.30.0 \
     crate://crates.io/tokio-util/0.7.20 \
+    crate://crates.io/toml/1.1.8+spec-1.1.0 \
+    crate://crates.io/toml_datetime/1.1.2+spec-1.1.0 \
+    crate://crates.io/toml_parser/1.1.5+spec-1.1.0 \
+    crate://crates.io/toml_writer/1.1.3+spec-1.1.0 \
     crate://crates.io/tower/0.5.3 \
     crate://crates.io/tower-http/0.7.1 \
     crate://crates.io/tower-layer/0.3.3 \
@@ -183,6 +188,7 @@ SRC_URI += " \
     crate://crates.io/windows_x86_64_gnu/0.52.6 \
     crate://crates.io/windows_x86_64_gnullvm/0.52.6 \
     crate://crates.io/windows_x86_64_msvc/0.52.6 \
+    crate://crates.io/winnow/1.0.4 \
     crate://crates.io/wit-bindgen/0.57.1 \
     crate://crates.io/x509-parser/0.18.1 \
     crate://crates.io/yasna/0.6.0 \
@@ -316,6 +322,7 @@ SRC_URI[serde_core-1.0.229.sha256sum] = "67dca2c9c51e58a4791a4b1ed58308b39c64224
 SRC_URI[serde_derive-1.0.229.sha256sum] = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 SRC_URI[serde_json-1.0.154.sha256sum] = "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6"
 SRC_URI[serde_path_to_error-0.1.20.sha256sum] = "10a9ff822e371bb5403e391ecd83e182e0e77ba7f6fe0160b795797109d1b457"
+SRC_URI[serde_spanned-1.1.2.sha256sum] = "4e7523beb55eece201a2356bee0bbca0d1ab466c14c07703b2e0ee6d42cb0c2c"
 SRC_URI[serde_urlencoded-0.7.1.sha256sum] = "d3491c14715ca2294c4d6a88f15e84739788c1d030eed8c110436aafdaa2f3fd"
 SRC_URI[sha1-0.10.7.sha256sum] = "a978451301f4db1d02937a4ab3ccce137717b81826e79b7d49ffe3244a13c3b8"
 SRC_URI[sha1-0.11.0.sha256sum] = "aacc4cc499359472b4abe1bf11d0b12e688af9a805fa5e3016f9a386dc2d0214"
@@ -344,6 +351,10 @@ SRC_URI[tokio-rustls-0.26.6.sha256sum] = "c9cc2678c2cdd569ef8215e2afd7954ada2ae2
 SRC_URI[tokio-tungstenite-0.29.0.sha256sum] = "8f72a05e828585856dacd553fba484c242c46e391fb0e58917c942ee9202915c"
 SRC_URI[tokio-tungstenite-0.30.0.sha256sum] = "17a073bfed563fa236697a068031408a93cd9522e08abf9933ead3e73411bd71"
 SRC_URI[tokio-util-0.7.20.sha256sum] = "e464cf451ba96ebfc6f9b6542f17ee8b8956e33f1e40d9690624e59d7a7f8a4b"
+SRC_URI[toml-1.1.8+spec-1.1.0.sha256sum] = "20489e00e4d8741d6be680764cc12e270655e375a20d1011e844a9c3379e678d"
+SRC_URI[toml_datetime-1.1.2+spec-1.1.0.sha256sum] = "2b86d767906c6c42421dcba507eb9d203e779497710a47782a224bb871653053"
+SRC_URI[toml_parser-1.1.5+spec-1.1.0.sha256sum] = "baa693a8032d7e1cada7d0041e96126df243179ff061456783ac7f12bda4744c"
+SRC_URI[toml_writer-1.1.3+spec-1.1.0.sha256sum] = "06bdbd8cfc056b8d2e2e85f29b56a3bdbecb527cef81eb39e3e7b98af4652770"
 SRC_URI[tower-0.5.3.sha256sum] = "ebe5ef63511595f1344e2d5cfa636d973292adc0eec1f0ad45fae9f0851ab1d4"
 SRC_URI[tower-http-0.7.1.sha256sum] = "08a05a66a4fdd61cbbe0a1d755ffe0ca6aba159dd4820936a0ff8a8278245b9c"
 SRC_URI[tower-layer-0.3.3.sha256sum] = "121c2a6cda46980bb0fcd1647ffaf6cd3fc79a013de288782836f6df9c48780e"
@@ -373,6 +384,7 @@ SRC_URI[windows_i686_msvc-0.52.6.sha256sum] = "240948bc05c5e7c6dabba28bf89d89ffc
 SRC_URI[windows_x86_64_gnu-0.52.6.sha256sum] = "147a5c80aabfbf0c7d901cb5895d1de30ef2907eb21fbbab29ca94c5b08b1a78"
 SRC_URI[windows_x86_64_gnullvm-0.52.6.sha256sum] = "24d5b23dc417412679681396f2b49f3de8c1473deb516bd34410872eff51ed0d"
 SRC_URI[windows_x86_64_msvc-0.52.6.sha256sum] = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
+SRC_URI[winnow-1.0.4.sha256sum] = "23b97319f7b8343df12cc98938e5c3eb436064524c8d2b4e30a1d3a36eecdf81"
 SRC_URI[wit-bindgen-0.57.1.sha256sum] = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 SRC_URI[x509-parser-0.18.1.sha256sum] = "d43b0f71ce057da06bc0851b23ee24f3f86190b07203dd8f567d0b706a185202"
 SRC_URI[yasna-0.6.0.sha256sum] = "b5f6765e852b9b4dc8e2a76843e4d64d1cea8e79bcde0b6901aea8e7c7f08282"
