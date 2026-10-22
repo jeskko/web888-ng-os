@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Web-888 firmware image. Build with the kas container:
+#   kas-container build kas/web888.yml
+# Layer revisions are pinned in kas/web888.lock.yml (`kas lock` updates it).
+
+header:
+  version: 14
+
+machine: web888
+distro: web888
+target: web888-image
+
+defaults:
+  repos:
+    branch: wrynose
+
+repos:
+  web888-ng-os:
+    layers:
+      meta-web888:
+
+  bitbake:
+    url: https://git.openembedded.org/bitbake
+    branch: "2.18"
+    layers:
+      .: disabled
+
+  openembedded-core:
+    url: https://git.openembedded.org/openembedded-core
+    layers:
+      meta:
+
+  meta-arm:
+    url: https://git.yoctoproject.org/meta-arm
+    layers:
+      meta-arm:
+      meta-arm-toolchain:
+
+  meta-xilinx:
+    url: https://github.com/Xilinx/meta-xilinx
+    layers:
+      meta-xilinx-core:
+
+local_conf_header:
+  web888: |
+    # remove work directories after each recipe: keeps a build under ~60 GB
+    INHERIT += "rm_work"
+    # source mirror / shared-state cache (set on CI and for contributors):
+    # SSTATE_MIRRORS ?= "file://.* http://<mirror>/sstate/PATH;downloadfilename=PATH"
+    # PREMIRRORS:prepend = "git://.*/.* http://<mirror>/downloads/ \n https?://.*/.* http://<mirror>/downloads/ \n"

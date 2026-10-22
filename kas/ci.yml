@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# CI overlay: kas build kas/web888.yml:kas/ci.yml
+# Downloads and shared state live on the runner's persistent data disk.
+header:
+  version: 14
+
+local_conf_header:
+  ci: |
+    DL_DIR = "/srv/yocto/downloads"
+    SSTATE_DIR = "/srv/yocto/sstate"
+    BB_GENERATE_MIRROR_TARBALLS = "1"
