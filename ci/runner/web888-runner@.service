@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# One ephemeral GitHub Actions runner per instance (os, hw): one job per
+# container. Configuration: /etc/web888-runner/env + <instance>.env.
+[Unit]
+Description=web888-ng ephemeral GitHub Actions runner (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=runner
+ExecStart=/usr/local/bin/web888-runner.sh %i
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

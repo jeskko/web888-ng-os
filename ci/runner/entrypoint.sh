@@ -5,6 +5,7 @@
 set -eu
 ./config.sh --unattended --ephemeral --replace \
     --url "https://github.com/$RUNNER_REPO" --token "$RUNNER_TOKEN" \
-    --name "$(hostname)-$(date +%s)" --labels yocto --work /builder/work
+    --name "$(hostname)-$(date +%s)" --labels "${RUNNER_LABELS:-yocto}" \
+    --work /builder/work
 unset RUNNER_TOKEN
 exec ./run.sh

@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Self-hosted runner image: kas (Yocto build host, Debian trixie) plus the
-# GitHub Actions runner. One container runs one job (--ephemeral).
+# GitHub Actions runner. One container runs one job (--ephemeral). Shared
+# by the os (Yocto) and hw (Vivado) runner instances.
 FROM ghcr.io/siemens/kas/kas:5.5
 
 ARG RUNNER_VERSION=2.338.0
@@ -12,6 +13,19 @@ RUN mkdir -p /opt/runner && cd /opt/runner \
  && tar xzf runner.tgz && rm runner.tgz \
  && ./bin/installdependencies.sh \
  && chown -R builder:builder /opt/runner
+# Vivado (mounted read-only from the host for the hw runner, never part of
+# this image): X/font libraries it loads even in batch mode, and
+# ncurses5/tinfo5 names, which Debian no longer ships, linked to the v6
+# libraries (LD_LIBRARY_PATH=/opt/vivado-compat). Vivado also needs
+# LD_PRELOAD=/lib/x86_64-linux-gnu/libudev.so.1: without it, its device
+# scan crashes in libudev (realloc(): invalid pointer).
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libx11-6 libxext6 \
+    libxrender1 libxtst6 libxi6 libfreetype6 fontconfig libtinfo6 libncursesw6 \
+ && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /opt/vivado-compat \
+ && ln -s /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /opt/vivado-compat/libtinfo.so.5 \
+ && ln -s /usr/lib/x86_64-linux-gnu/libncursesw.so.6 /opt/vivado-compat/libncurses.so.5
 COPY entrypoint.sh /opt/runner/entrypoint.sh
 USER builder
 WORKDIR /opt/runner
