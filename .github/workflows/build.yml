@@ -11,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# one image build per branch: a newer push cancels the running one
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Cheap check on GitHub-hosted runners, also for pull requests.
   config:
