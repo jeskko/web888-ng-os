@@ -10,9 +10,9 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-# v0.2.0 (multi-user, M3)
-SRCREV = "0bcd7b4a3a275891a704b23d10d56f06ced7e914"
-PV = "0.2.0"
+# v0.2.1 (trusted proxies, session and idle limits)
+SRCREV = "b749dff1b2f3e5a38f8aa9277dfec9a5ff38813b"
+PV = "0.2.1"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
 
