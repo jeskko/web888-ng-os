@@ -1,4 +1,7 @@
-# web888d command line. The bitstream is loaded through the FPGA manager
-# before /dev/zynqsdr is opened; put it on the boot partition (FAT, mounted
-# read-only at /boot).
-WEB888D_ARGS="serve --bitstream /boot/web888-pl.bit"
+# web888d command line. `--bitstream auto` loads the variant's bitstream
+# from /usr/share/web888 (package web888-bitstream) through the FPGA
+# manager before /dev/zynqsdr is opened. To try another bitstream, put it
+# on the boot partition (FAT, read-only at /boot) and use
+# `--bitstream /boot/<file>.bit`; this file lives on the read-only root
+# until the configuration partition exists.
+WEB888D_ARGS="serve"

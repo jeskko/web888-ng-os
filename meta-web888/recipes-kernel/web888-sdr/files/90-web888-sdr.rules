@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# /dev/zynqsdr as a systemd device unit (dev-zynqsdr.device), so that
+# web888d.service can wait for the driver instead of racing its autoload.
+KERNEL=="zynqsdr", SUBSYSTEM=="misc", TAG+="systemd"

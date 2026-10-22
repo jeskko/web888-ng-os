@@ -1,8 +1,9 @@
 [Unit]
 Description=web888-ng SDR server
-# the bitstream is read from the boot partition
-RequiresMountsFor=/boot
-After=systemd-modules-load.service
+# /dev/zynqsdr appears once the driver has autoloaded (udev rule in
+# web888-sdr); without it, start fails after the device timeout.
+Requires=dev-zynqsdr.device
+After=dev-zynqsdr.device local-fs.target
 
 [Service]
 EnvironmentFile=/etc/default/web888d

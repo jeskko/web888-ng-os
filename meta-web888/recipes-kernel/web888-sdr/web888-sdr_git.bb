@@ -7,7 +7,9 @@ HOMEPAGE = "https://github.com/jeskko/web888-ng-hw"
 LICENSE = "GPL-2.0-or-later"
 LIC_FILES_CHKSUM = "file://web888_sdr.c;beginline=1;endline=1;md5=7226e442a172bcf25807246d7ef1eba1"
 
-SRC_URI = "git://github.com/jeskko/web888-ng-hw.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/jeskko/web888-ng-hw.git;protocol=https;branch=main \
+           file://90-web888-sdr.rules \
+           "
 SRCREV = "323f97b47c5f26997e667fc0da0762edb2be4dc4"
 PV = "0.1+git"
 
@@ -17,3 +19,9 @@ inherit module
 
 # loaded through the DT modalias (rx888,zynqsdr / web888-ng,sdr)
 RPROVIDES:${PN} += "kernel-module-web888-sdr"
+
+do_install:append() {
+	install -d ${D}${nonarch_base_libdir}/udev/rules.d
+	install -m 0644 ${UNPACKDIR}/90-web888-sdr.rules ${D}${nonarch_base_libdir}/udev/rules.d/
+}
+FILES:${PN} += "${nonarch_base_libdir}/udev/rules.d"

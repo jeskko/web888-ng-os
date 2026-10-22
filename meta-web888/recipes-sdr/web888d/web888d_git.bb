@@ -10,7 +10,7 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-SRCREV = "e8a430f2c0856033186913145403046db6dc2532"
+SRCREV = "e7c7abe1c3ee42682e9dd48a938cf767a3311406"
 PV = "0.1+git"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
@@ -29,4 +29,4 @@ do_install:append() {
 }
 
 SYSTEMD_SERVICE:${PN} = "web888d.service"
-RDEPENDS:${PN} += "kernel-module-web888-sdr"
+RDEPENDS:${PN} += "web888-sdr kernel-module-web888-sdr web888-bitstream"
