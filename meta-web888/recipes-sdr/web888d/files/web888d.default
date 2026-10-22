@@ -5,6 +5,13 @@
 # within seconds (or `systemctl reload web888d`); radio/HPSDR/listen
 # settings say they need a restart.
 #
+# Passwords: `web888d passwd` sets the admin password (admin pages at
+# https://<unit>:8073/#/admin), `web888d passwd --listener` a shared
+# listener password. /etc/web888d/web888d.toml links to the file above.
+# Or put a first admin password (one line, at least 8 characters) in
+# web888d-admin on the boot partition: applied at the next start; as /boot
+# is read-only it stays there, but is applied again only if it changes.
+#
 # The web UI's self-signed certificate is kept in /config/web888d. The
 # bitstream comes from /usr/share/web888 (package web888-bitstream,
 # `[radio] bitstream = "auto"`); to try another, put it on the boot

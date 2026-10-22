@@ -10,9 +10,9 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-# main after v0.1.0: configuration file (M3 step 1)
-SRCREV = "7162e17cbc05f4880a40af1ff425f498e550dbc1"
-PV = "0.1.0+git"
+# v0.2.0 (multi-user, M3)
+SRCREV = "0bcd7b4a3a275891a704b23d10d56f06ced7e914"
+PV = "0.2.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
 
@@ -27,6 +27,10 @@ do_install:append() {
 	install -d ${D}${systemd_system_unitdir} ${D}${sysconfdir}/default
 	install -m 0644 ${UNPACKDIR}/web888d.service ${D}${systemd_system_unitdir}/
 	install -m 0644 ${UNPACKDIR}/web888d.default ${D}${sysconfdir}/default/web888d
+	# the default config path leads to the config partition, so plain
+	# `web888d passwd` (and --print-config) use the file the service does
+	install -d ${D}${sysconfdir}/web888d
+	ln -s /config/web888d.toml ${D}${sysconfdir}/web888d/web888d.toml
 }
 
 SYSTEMD_SERVICE:${PN} = "web888d.service"
