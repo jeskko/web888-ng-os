@@ -50,4 +50,6 @@ while :; do
         -e RUNNER_LABELS="${RUNNER_LABELS:-}" \
         -v "$WORK":/builder/work ${RUNNER_PODMAN_ARGS:-} \
         "$IMAGE" || sleep 10
+    # don't keep a finished job's workspace (tens of GB) until the next job
+    find "$WORK" -mindepth 1 -delete
 done

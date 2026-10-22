@@ -146,9 +146,20 @@ the old contents can be deleted.
 
 ## Maintenance
 
-* Prune the shared state monthly, e.g. remove entries not accessed
-  for 60 days: `find /srv/yocto/sstate -type f -atime +60 -delete`, or use
-  `sstate-cache-management.py` from oe-core.
+* `web888-cleanup.timer` (weekly, Sundays ~04:00) runs
+  `web888-cleanup.sh` as `runner`: removes shared state not accessed for
+  60 days (`SSTATE_DAYS`) and podman leftovers (dangling images from
+  runner image rebuilds, stopped containers), and logs disk usage
+  (`journalctl -u web888-cleanup`). Downloads are kept (source mirror).
+  Install: `install -m 755 web888-cleanup.sh /usr/local/bin/`,
+  `install -m 644 web888-cleanup.service web888-cleanup.timer
+  /etc/systemd/system/`, `systemctl enable --now web888-cleanup.timer`.
+* Job workspaces are emptied before and after each job by the runner
+  script.
+* Vivado licence: the hw repo's `licence` workflow checks it weekly on
+  this host and fails (GitHub mails you) from 30 days before expiry.
+  Renew on AMD Product Licensing, then replace `xilinx.lic` (Basic-only,
+  see "Vivado").
 * New runner release: bump `RUNNER_VERSION` in `Containerfile`, rebuild
   the image. The runner also self-updates within a job when needed.
 

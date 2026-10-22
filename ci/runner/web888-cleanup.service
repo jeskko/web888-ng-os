@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+[Unit]
+Description=web888-ng build host cleanup (old sstate, podman leftovers)
+
+[Service]
+Type=oneshot
+User=runner
+Nice=10
+IOSchedulingClass=idle
+ExecStart=/usr/local/bin/web888-cleanup.sh
