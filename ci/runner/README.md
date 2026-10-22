@@ -95,7 +95,11 @@ Variables), which turns on the jobs that need these runners.
   workflow calls `/data/vivado/2026.1/Vivado/bin/vivado`.
 * Vivado 2026.1 needs a licence even for the free devices: a node-locked
   Basic licence for the MAC of the VM's network interface, installed as
-  `/etc/web888-runner/xilinx.lic` (root:runner, 0640). The hw container
+  `/etc/web888-runner/xilinx.lic` (root:runner, 0640). Use a file with
+  only the Basic tier: if the licence also holds the Alveo tier, Vivado
+  2026.1 picks Alveo, which covers no Zynq-7000 part ("Specified part
+  could not be found"). Removing the `Vivado_Alveo_Package` INCREMENT and
+  PACKAGE entries is enough (each entry is signed on its own). The hw container
   runs with `--network host` so that Vivado sees that MAC (a rootless
   container otherwise gets a random one). The host firewall still applies.
 * The job sets `LD_LIBRARY_PATH=/opt/vivado-compat` (ncurses5/tinfo5
