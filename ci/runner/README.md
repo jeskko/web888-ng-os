@@ -28,7 +28,7 @@ adduser --system --group --home /var/lib/runner --shell /bin/sh runner
 usermod --add-subuids 200000-265535 --add-subgids 200000-265535 runner
 loginctl enable-linger runner
 
-mkdir -p /srv/yocto/downloads /srv/yocto/sstate
+mkdir -p /srv/yocto/downloads /srv/yocto/sstate   # or bind-mount a data disk there
 chown -R runner:runner /srv/yocto
 
 install -m 755 web888-runner.sh /usr/local/bin/
@@ -42,13 +42,20 @@ install -m 644 web888-runner.service /etc/systemd/system/
 install -m 644 nginx-mirror.conf /etc/nginx/sites-available/yocto-mirror
 ln -sf ../sites-available/yocto-mirror /etc/nginx/sites-enabled/default
 
-#   set GATEWAY, DNS (and LAN ranges) in nftables.conf, then:
-install -m 755 nftables.conf /etc/nftables.conf
+#   set GATEWAY, DNS (and LAN ranges) in nftables.conf, check with
+#   `nft -c -f nftables.conf`, then apply with a rollback timer in case
+#   the rules lock you out (an ssh session opened before the first
+#   firewall may hang; open a new one to test):
+systemd-run --on-active=180 --unit=nft-rollback nft flush ruleset
+install -m 755 nftables.conf /etc/nftables.conf && nft -f /etc/nftables.conf
+#   new ssh login works? then:
+systemctl stop nft-rollback.timer
 systemctl enable --now nftables nginx
 
 # build the runner image as the runner user (rootless podman)
 cp Containerfile entrypoint.sh /var/lib/runner/
-runuser -u runner -- sh -c 'cd ~ && podman build -t localhost/web888-runner:latest .'
+runuser -u runner -- env XDG_RUNTIME_DIR=/run/user/$(id -u runner) \
+    sh -c 'cd ~ && podman build -t localhost/web888-runner:latest .'
 systemctl enable --now web888-runner
 ```
 

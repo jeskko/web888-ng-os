@@ -9,6 +9,9 @@
 #   GH_PAT=<fine-grained PAT: this repo only, "Administration: read and write">
 set -eu
 . /etc/web888-runner/env
+# rootless podman from a system service: use the lingering user manager
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+export DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=$XDG_RUNTIME_DIR/bus}"
 IMAGE=localhost/web888-runner:latest
 while :; do
     tok=$(curl -fsS -X POST \
