@@ -7,7 +7,7 @@
 #
 # KERNEL     uImage or zImage (CI artifact web888-image)
 # ROOTFS     web888-image-web888.rootfs.squashfs-xz
-# INITRAMFS  web888-chainboot-initramfs-web888.rootfs.cpio.gz
+# INITRAMFS  web888-chainboot-initramfs-web888.cpio.gz
 # DTB        the unit's device tree (from its boot.bin: hw/emu/scripts/bootbin.py)
 # OVERLAY    optional directory copied over the root at boot: the unit's
 #            network, ssh keys, /config/web888d.toml (keep it private)
