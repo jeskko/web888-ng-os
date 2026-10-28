@@ -9,7 +9,10 @@ header:
 
 machine: web888
 distro: web888
-target: web888-image
+target:
+  - web888-image
+  # chain-loading from the stock firmware (scripts/chainboot-pack.sh)
+  - web888-chainboot-initramfs
 
 defaults:
   repos:

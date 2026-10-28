@@ -12,8 +12,8 @@ SRC_URI = "${REL}/websdr_hf.bit;name=hf;unpack=0 \
            ${REL}/websdr_vhf.bit;name=vhf;unpack=0 \
            "
 # from the release's SHA256SUMS
-SRC_URI[hf.sha256sum] = "6084026aded81fb22c8d9409995bda739ed4edf8eff85ed534e691d8c5ad2ddf"
-SRC_URI[vhf.sha256sum] = "d201d910c0ede13987bbe4aee28e0079059da3deca1b94c1a96232a792244bd4"
+SRC_URI[hf.sha256sum] = "ef9740501352995128c586fad718b35c2b8866c54ff981978b160b0a8814a2f4"
+SRC_URI[vhf.sha256sum] = "62df1ddcb1bb86e5f59430ccfef2eb298e3bf0f11fef7e14738f59218320e3ad"
 
 S = "${UNPACKDIR}"
 

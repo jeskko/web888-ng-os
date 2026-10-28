@@ -50,5 +50,7 @@ jobs:
           path: |
             build/tmp/deploy/images/web888/*.wic*
             build/tmp/deploy/images/web888/*.squashfs-xz
+            build/tmp/deploy/images/web888/uImage
+            build/tmp/deploy/images/web888/web888-chainboot-initramfs-web888.rootfs.cpio.gz
             build/tmp/deploy/images/web888/*.spdx.json
           if-no-files-found: error
