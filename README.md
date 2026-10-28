@@ -18,8 +18,9 @@ Bitstreams: package `web888-bitstream` fetches the web888-ng-hw release
 bump the recipe version and the two checksums from its `SHA256SUMS`. To
 try another bitstream, put it on the FAT boot partition (read-only at
 `/boot`) and change `/etc/default/web888d` to `serve --bitstream
-/boot/<file>.bit`. Next: our own device tree, RAUC A/B with the config
-partition, and the boot files for the real board.
+/boot/<file>.bit`. A configuration partition holds `web888d`'s
+configuration. Next: our own device tree, RAUC A/B, and the boot files for
+the real board.
 
 Development image (empty root password, never for release):
 `kas-container build kas/web888.yml:kas/dev.yml`. Boot it in the
