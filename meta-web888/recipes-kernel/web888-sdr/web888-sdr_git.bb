@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM = "file://web888_sdr.c;beginline=1;endline=1;md5=7226e442a172bc
 SRC_URI = "git://github.com/jeskko/web888-ng-hw.git;protocol=https;branch=main \
            file://90-web888-sdr.rules \
            "
-SRCREV = "323f97b47c5f26997e667fc0da0762edb2be4dc4"
+SRCREV = "9e6b0363bf03342abb43256092a1ea909cd88421"
 PV = "0.1+git"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}/driver"
