@@ -49,6 +49,17 @@ size=$(stat -c %s "$out/initrd.cpio.gz")
 cp "$dtb" "$out/unit.dtb"
 fdtput -t s "$out/unit.dtb" /chosen bootargs \
 	"console=ttyPS0,115200 earlycon initrd=0x04000000,$size clk_ignore_unused chainboot=1${BOOTARGS_EXTRA:+ $BOOTARGS_EXTRA}"
+# The kernel log in RAM (ramoops), read back from the stock firmware after a
+# watchdog reset (physmem dump 0x1ff00000 0x100000, web888-ng-hw tools/):
+# the top of the stock kernel's CMA area, which it leaves alone while booting
+fdtput -p -c "$out/unit.dtb" /reserved-memory/ramoops@1ff00000
+fdtput -t u "$out/unit.dtb" /reserved-memory '#address-cells' 1
+fdtput -t u "$out/unit.dtb" /reserved-memory '#size-cells' 1
+fdtput -t x "$out/unit.dtb" /reserved-memory ranges
+fdtput -t s "$out/unit.dtb" /reserved-memory/ramoops@1ff00000 compatible ramoops
+fdtput -t x "$out/unit.dtb" /reserved-memory/ramoops@1ff00000 reg 0x1ff00000 0x100000
+fdtput -t x "$out/unit.dtb" /reserved-memory/ramoops@1ff00000 record-size 0x20000
+fdtput -t x "$out/unit.dtb" /reserved-memory/ramoops@1ff00000 console-size 0x80000
 if [ -n "${MAC:-}" ]; then
 	fdtput -t bx "$out/unit.dtb" /axi/ethernet@e000b000 local-mac-address $(echo "$MAC" | tr : ' ')
 fi
