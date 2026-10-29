@@ -1,0 +1,144 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ * Web-888 SDR (Zynq-7010 xc7z010clg400-1, 512 MB DDR3), for both U-Boot
+ * and Linux (their zynq-7000.dtsi share the labels). Board facts from
+ * web888-ng-hw docs/stock-unit-facts.md (the live device tree and the
+ * EEPROM) and docs/server-fpga-interface.md.
+ *
+ * Not described: the Si5351 at I2C 0x60. web888d programs it through
+ * /dev/i2c-0 (a kernel clock driver would claim the address).
+ */
+/dts-v1/;
+#include "zynq-7000.dtsi"
+
+/ {
+	model = "Web-888 SDR";
+	compatible = "web888-ng,web888", "xlnx,zynq-7000";
+
+	aliases {
+		ethernet0 = &gem0;
+		i2c0 = &i2c0;
+		mmc0 = &sdhci0;
+		serial0 = &uart0;
+		serial1 = &uart1;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x0 0x20000000>;
+	};
+
+	/* GPS PPS on EMIO GPIO 54 (the FPGA routes it to GPIO_I[0]) */
+	pps {
+		compatible = "pps-gpio";
+		gpios = <&gpio0 54 0>;
+		capture-clear;
+	};
+
+	/*
+	 * The SDR logic in the PL (the open web888-sdr driver): CFG, STS,
+	 * PPS FIFO and EV windows; IRQ_F2P[3:0]; the front end on MIO GPIOs
+	 * (HF/VHF switch, AD8370 clock, latch, data; reference select), all
+	 * active-low.
+	 */
+	sdr@40000000 {
+		compatible = "web888-ng,sdr";
+		reg = <0x40000000 0xa0>, <0x41000000 0x40>, <0x42000000 0x1000>,
+		      <0x43000000 0x200>;
+		interrupt-parent = <&intc>;
+		interrupts = <0 29 1>, <0 30 1>, <0 31 1>, <0 32 1>;
+		gpios = <&gpio0 10 1>, <&gpio0 13 1>, <&gpio0 12 1>,
+			<&gpio0 11 1>, <&gpio0 49 1>;
+	};
+
+	usb_phy0: phy0 {
+		compatible = "ulpi-phy";
+		#phy-cells = <0>;
+		reg = <0xe0002000 0x1000>;
+		view-port = <0x0170>;
+		drv-vbus;
+	};
+};
+
+&clkc {
+	ps-clk-frequency = <33333333>;
+	/* FCLK0 for the PL: keep it running */
+	fclk-enable = <0x1>;
+};
+
+&uart0 {
+	status = "okay";
+};
+
+/* the GPS receiver (gpsd) */
+&uart1 {
+	status = "okay";
+};
+
+&sdhci0 {
+	status = "okay";
+	/* no card-detect or write-protect wiring that can be trusted */
+	broken-cd;
+	disable-wp;
+};
+
+&gem0 {
+	status = "okay";
+	phy-mode = "rgmii-id";
+	phy-handle = <&ethernet_phy>;
+	/* as the stock firmware: the MAC from the EEPROM (0x10); without a
+	 * valid one the kernel takes a random one, and web888-setup a stable
+	 * one */
+	nvmem-cells = <&eeprom_mac>;
+	nvmem-cell-names = "mac-address";
+
+	ethernet_phy: ethernet-phy@1 {
+		reg = <1>;
+	};
+};
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <400000>;
+
+	eeprom@50 {
+		compatible = "atmel,24c64";
+		reg = <0x50>;
+		pagesize = <32>;
+
+		nvmem-layout {
+			compatible = "fixed-layout";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			eeprom_mac: mac-address@10 {
+				reg = <0x10 0x6>;
+			};
+
+			/* the board data, a U-Boot environment (read only) */
+			board_env: env@1800 {
+				reg = <0x1800 0x400>;
+			};
+		};
+	};
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&usb0 {
+	status = "okay";
+	dr_mode = "host";
+	usb-phy = <&usb_phy0>;
+};
+
+&watchdog0 {
+	status = "okay";
+	reset-on-timeout;
+	timeout-sec = <60>;
+};

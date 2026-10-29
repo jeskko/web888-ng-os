@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+/*
+ * U-Boot only (included with zynq-web888.dts): what SPL needs before
+ * relocation, the console and the SD card it loads U-Boot from.
+ */
+&uart0 {
+	bootph-all;
+};
+
+&sdhci0 {
+	bootph-all;
+};

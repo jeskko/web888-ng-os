@@ -1,0 +1,33 @@
+From 108f72c2851406fea37a1f29164d131ff69cda53 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jarkko=20V=C3=A4=C3=A4r=C3=A4niemi?= <oh8hql@gmail.com>
+Date: Thu, 29 Oct 2026 22:04:46 +0200
+Subject: [PATCH] zynq: environment in raw MMC when booting from SD
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+With CONFIG_ENV_IS_IN_MMC an SD boot keeps the environment at
+CONFIG_ENV_OFFSET (and CONFIG_ENV_OFFSET_REDUND) on the card, outside the
+partitions, as A/B boot counters (RAUC) want: written without touching
+a file system.
+
+---
+ board/xilinx/zynq/board.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/board/xilinx/zynq/board.c b/board/xilinx/zynq/board.c
+index 04dee1b8..11ac0ccf 100644
+--- a/board/xilinx/zynq/board.c
++++ b/board/xilinx/zynq/board.c
+@@ -147,6 +147,8 @@ enum env_location env_get_location(enum env_operation op, int prio)
+ 
+ 	switch (bootmode) {
+ 	case ZYNQ_BM_SD:
++		if (IS_ENABLED(CONFIG_ENV_IS_IN_MMC))
++			return ENVL_MMC;
+ 		if (IS_ENABLED(CONFIG_ENV_IS_IN_FAT))
+ 			return ENVL_FAT;
+ 		if (IS_ENABLED(CONFIG_ENV_IS_IN_EXT4))
+-- 
+2.56.0
+
