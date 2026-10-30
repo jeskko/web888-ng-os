@@ -46,8 +46,11 @@ this test is for.
    antenna, then power on.
 2. After about half a minute, open `http://web888.local:8073` (or the
    address your router gave the unit; its name is `web888`).
-3. Tune around: the waterfall should show the band and the audio should
-   sound as it does with the stock firmware.
+3. Press "Start audio" and tune around: the waterfall should show the
+   band and the audio should sound as it does with the stock firmware.
+   Over `http://` the status bar notes the extra audio delay and links to
+   the same page over `https://`, which plays with less (the browser
+   warns once about the unit's own certificate).
 4. The admin pages are under `#/admin` (the gear icon). Log in with the
    password from step 2.3, or the one in `web888-password.txt`.
 
