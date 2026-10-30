@@ -25,3 +25,8 @@
 # An SSH public key for root (one line, as in authorized_keys). There is
 # no other way to log in; without a key, SSH is off.
 #ssh_key =
+
+# The FPGA bitstream: standard (12 receivers; the default) or
+# channelizer (EXPERIMENTAL: the whole HF band in 30 kHz bins, receivers
+# limited by the CPU instead, up to 32 at once).
+#bitstream = standard

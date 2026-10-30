@@ -4,7 +4,8 @@
 # partition (/boot), applied at every boot before the network, SSH and
 # web888d start: the network, the hostname, the admin password and an
 # SSH key; a stable MAC address when the EEPROM has none. What it did
-# goes to web888-setup.log next to web888.txt.
+# goes to web888-setup.log next to web888.txt. Also the bitstream web888d
+# loads (standard or channelizer), as its command line in /run.
 #
 # The FAT is written only when something changes: the password line
 # replaced by "admin_password = (set)" once the password is taken, a
@@ -25,6 +26,8 @@ TXT=$BOOT/web888.txt
 LOG=$BOOT/web888-setup.log
 PWTXT=$BOOT/web888-password.txt
 TOML=$CONFIG/web888d.toml
+BITDIR=${WEB888_BITDIR:-/usr/share/web888}
+WEB888D_ENV=$RUN/web888/web888d.env
 STATE=$CONFIG/web888-setup
 NETDIR=$RUN/systemd/network
 SSHDIR=$RUN/web888/ssh
@@ -83,7 +86,7 @@ unquote() {
 }
 
 admin_password="" have_password=0
-network="" address="" gateway="" dns="" hostname="" ssh_key=""
+network="" address="" gateway="" dns="" hostname="" ssh_key="" bitstream=""
 
 read_settings() {
 	n=0
@@ -110,6 +113,7 @@ read_settings() {
 		dns) dns=$val ;;
 		hostname) hostname=$val ;;
 		ssh_key) ssh_key=$val ;;
+		bitstream) bitstream=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
 		*) problem "web888.txt line $n: unknown setting \"$key\"" ;;
 		esac
 	done < "$TXT"
@@ -366,6 +370,29 @@ ssh_setting() {
 	say "SSH: on for root with the key from web888.txt"
 }
 
+# ------------------------------------------------------------ bitstream
+
+# standard: web888d's own choice (its configuration, by default the HF
+# bitstream); channelizer: the channelizer bitstream on the command line,
+# which web888d then runs in bins mode (over its configuration)
+bitstream_setting() {
+	mkdir -p "$(dirname "$WEB888D_ENV")"
+	extra=""
+	case $bitstream in
+	'' | standard) say "bitstream: standard" ;;
+	channelizer)
+		if [ -e "$BITDIR/websdr_pfb.bit" ]; then
+			extra="--bitstream $BITDIR/websdr_pfb.bit"
+			say "bitstream: channelizer (experimental)"
+		else
+			problem "bitstream = channelizer: not in this image; the standard one"
+		fi
+		;;
+	*) problem "bitstream = \"$bitstream\": standard or channelizer; the standard one" ;;
+	esac
+	echo "WEB888D_EXTRA=\"$extra\"" > "$WEB888D_ENV"
+}
+
 # ----------------------------------------------------------------- main
 
 board_info() {
@@ -385,6 +412,7 @@ network_setting
 hostname_setting
 password_setting
 ssh_setting
+bitstream_setting
 [ $problems = 0 ] && say "no problems"
 
 # the log, rewritten only when it says something new

@@ -11,6 +11,8 @@ machine: web888
 distro: web888
 target:
   - web888-image
+  # the same, web888.txt choosing the channelizer bitstream
+  - web888-image-channelizer
   # chain-loading from the stock firmware (scripts/chainboot-pack.sh)
   - web888-chainboot-initramfs
 

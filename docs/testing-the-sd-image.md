@@ -38,6 +38,11 @@ this test is for.
      network has no DHCP server. The default is DHCP.
    * `ssh_key = ssh-ed25519 AAAA...`: your SSH public key, if you want a
      shell on the unit (`ssh root@<unit>`). Without a key, SSH is off.
+   * `bitstream = channelizer`: the experimental channelizer bitstream
+     (the whole HF band in 30 kHz bins; receivers limited by the CPU, up
+     to 32, instead of the standard 12). `bitstream = standard` or no line
+     is the standard one. The `-channelizer` image is the same image with
+     this line already set.
    Remove the `#` in front of a setting to use it. Save and eject the card.
 
 ## 3. Boot it

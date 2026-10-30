@@ -10,7 +10,9 @@ After=config.mount
 
 [Service]
 EnvironmentFile=/etc/default/web888d
-ExecStart=/usr/bin/web888d $WEB888D_ARGS
+# the bitstream from web888.txt (web888-setup), if any
+EnvironmentFile=-/run/web888/web888d.env
+ExecStart=/usr/bin/web888d $WEB888D_ARGS $WEB888D_EXTRA
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=5

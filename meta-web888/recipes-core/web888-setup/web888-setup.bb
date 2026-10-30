@@ -37,9 +37,12 @@ do_install() {
 	install -D -m 0644 ${S}/watchdog.conf ${D}${systemd_unitdir}/system.conf.d/web888-watchdog.conf
 }
 
-# the settings file as shipped on the FAT (IMAGE_BOOT_FILES)
+# the settings file as shipped on the FAT (IMAGE_BOOT_FILES); the
+# channelizer image's with its bitstream setting on
 do_deploy() {
 	install -m 0644 ${S}/web888.txt ${DEPLOYDIR}/web888.txt
+	sed 's/^#bitstream = standard\r$/bitstream = channelizer\r/' ${S}/web888.txt > ${DEPLOYDIR}/web888-channelizer.txt
+	grep -q '^bitstream = channelizer' ${DEPLOYDIR}/web888-channelizer.txt
 }
 addtask deploy after do_install before do_build
 
