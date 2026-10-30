@@ -1,0 +1,18 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# web888-boot-ok: this boot's root slot is good once web888d has run for
+# a minute: its tries go back to 3 (U-Boot's boot chooser takes one at
+# every boot, recipes-bsp/u-boot/files/web888.env; RAUC's "mark-good").
+# A slot whose web888d never comes up runs out of tries after three
+# boots, and the other slot boots.
+slot=$(sed -n 's/.*rauc\.slot=\([AB]\).*/\1/p' /proc/cmdline)
+[ -n "$slot" ] || exit 0
+sleep 60
+state=$(systemctl show -p ActiveState --value web888d)
+if [ "$state" != active ]; then
+	echo "web888-boot-ok: web888d is $state: slot $slot not marked good"
+	exit 1
+fi
+left=$(fw_printenv -n "BOOT_${slot}_LEFT" 2>/dev/null)
+[ "$left" = 3 ] && exit 0
+fw_setenv "BOOT_${slot}_LEFT" 3 && echo "web888-boot-ok: slot $slot good (tries 3, were ${left:-?})"

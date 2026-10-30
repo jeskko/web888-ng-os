@@ -1,0 +1,20 @@
+[Unit]
+Description=Owner's settings from web888.txt (network, password, SSH key)
+Documentation=file:///boot/web888.txt
+# only when our own boot loader chose a root slot (not when chain-loaded
+# from the stock firmware, which brings its own settings)
+ConditionKernelCommandLine=rauc.slot
+DefaultDependencies=no
+Wants=boot.mount config.mount
+After=boot.mount config.mount systemd-udevd.service
+Before=sysinit.target network-pre.target systemd-networkd.service sockets.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/web888-setup
+TimeoutStartSec=120
+
+[Install]
+WantedBy=sysinit.target

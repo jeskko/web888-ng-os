@@ -1,0 +1,391 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# web888-setup: the owner's settings from web888.txt on the SD card's FAT
+# partition (/boot), applied at every boot before the network, SSH and
+# web888d start: the network, the hostname, the admin password and an
+# SSH key; a stable MAC address when the EEPROM has none. What it did
+# goes to web888-setup.log next to web888.txt.
+#
+# The FAT is written only when something changes: the password line
+# replaced by "admin_password = (set)" once the password is taken, a
+# made-up password in web888-password.txt, the log when its text
+# changes. Each write is a copy then a rename.
+#
+# The paths can be moved for tests (WEB888_BOOT, WEB888_CONFIG,
+# WEB888_RUN, WEB888_SYS, WEB888D).
+set -u
+
+BOOT=${WEB888_BOOT:-/boot}
+CONFIG=${WEB888_CONFIG:-/config}
+RUN=${WEB888_RUN:-/run}
+SYS=${WEB888_SYS:-/sys}
+WEB888D=${WEB888D:-web888d}
+
+TXT=$BOOT/web888.txt
+LOG=$BOOT/web888-setup.log
+PWTXT=$BOOT/web888-password.txt
+TOML=$CONFIG/web888d.toml
+STATE=$CONFIG/web888-setup
+NETDIR=$RUN/systemd/network
+SSHDIR=$RUN/web888/ssh
+NETIF=eth0
+
+CR=$(printf '\r')
+BOM=$(printf '\357\273\277')
+
+report=""
+problems=0
+say() {
+	report="$report$*
+"
+	echo "web888-setup: $*"
+}
+problem() {
+	problems=$((problems + 1))
+	say "PROBLEM: $*"
+}
+
+# --------------------------------------------------------------- the FAT
+
+boot_rw=0
+boot_writable() {
+	[ $boot_rw = 1 ] && return 0
+	[ -n "${WEB888_BOOT:-}" ] && { boot_rw=1; return 0; }
+	mount -o remount,rw "$BOOT" && boot_rw=1
+}
+boot_done() {
+	[ $boot_rw = 1 ] || return 0
+	sync
+	[ -n "${WEB888_BOOT:-}" ] || mount -o remount,ro "$BOOT"
+}
+# put_file NAME: stdin to NAME on the FAT (a copy, then a rename)
+put_file() {
+	boot_writable || { problem "can't write $(basename "$1") (the card is read-only?)"; return 1; }
+	cat > "$1.new" && mv -f "$1.new" "$1"
+}
+
+# ------------------------------------------------------------ the file
+
+trim() {
+	printf '%s' "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'
+}
+# a value in matching quotes loses them
+unquote() {
+	case $1 in
+	\"*\") v=${1#\"}; printf '%s' "${v%\"}" ;;
+	\'*\') v=${1#\'}; printf '%s' "${v%\'}" ;;
+	*) printf '%s' "$1" ;;
+	esac
+}
+
+admin_password="" have_password=0
+network="" address="" gateway="" dns="" hostname="" ssh_key=""
+
+read_settings() {
+	n=0
+	while IFS= read -r line || [ -n "$line" ]; do
+		n=$((n + 1))
+		line=${line%"$CR"}
+		[ $n = 1 ] && line=${line#"$BOM"}
+		line=$(trim "$line")
+		case $line in
+		'' | '#'*) continue ;;
+		*=*) ;;
+		*)
+			problem "web888.txt line $n: not \"name = value\""
+			continue
+			;;
+		esac
+		key=$(trim "${line%%=*}" | tr 'A-Z' 'a-z')
+		val=$(unquote "$(trim "${line#*=}")")
+		case $key in
+		admin_password) admin_password=$val have_password=1 ;;
+		network) network=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
+		address) address=$val ;;
+		gateway) gateway=$val ;;
+		dns) dns=$val ;;
+		hostname) hostname=$val ;;
+		ssh_key) ssh_key=$val ;;
+		*) problem "web888.txt line $n: unknown setting \"$key\"" ;;
+		esac
+	done < "$TXT"
+}
+
+# ------------------------------------------------------------- checks
+
+ipv4() {
+	case $1 in
+	*[!0-9.]* | .* | *. | *..*) return 1 ;;
+	esac
+	old_ifs=$IFS
+	IFS=.
+	set -- $1
+	IFS=$old_ifs
+	[ $# = 4 ] || return 1
+	for o; do
+		[ ${#o} -le 3 ] && [ "$o" -le 255 ] || return 1
+	done
+}
+ipv4_prefix() {
+	case $1 in
+	*/*) ;;
+	*) return 1 ;;
+	esac
+	p=${1#*/}
+	case $p in
+	'' | *[!0-9]*) return 1 ;;
+	esac
+	[ "$p" -ge 1 ] && [ "$p" -le 32 ] && ipv4 "${1%/*}"
+}
+valid_hostname() {
+	case $1 in
+	'' | -* | *- | *[!a-z0-9-]*) return 1 ;;
+	esac
+	[ ${#1} -le 63 ]
+}
+
+# ------------------------------------------------------------ the MAC
+
+# The EEPROM's address (0x10, the device tree's nvmem cell) is kept as it
+# is. Without a valid one the kernel makes a random address at every
+# boot, and every boot would get another DHCP lease: then the unit keeps
+# one random address, made once and saved in /config.
+mac=""
+mac_setting() {
+	i=0
+	while [ ! -e "$SYS/class/net/$NETIF" ] && [ $i -lt 10 ]; do
+		sleep 1
+		i=$((i + 1))
+	done
+	if [ ! -e "$SYS/class/net/$NETIF" ]; then
+		problem "no network interface $NETIF"
+		return
+	fi
+	now=$(cat "$SYS/class/net/$NETIF/address")
+	# 1: random (net_addr_assign_type)
+	if [ "$(cat "$SYS/class/net/$NETIF/addr_assign_type")" != 1 ]; then
+		say "MAC address $now (from the board's EEPROM)"
+		return
+	fi
+	saved=$(cat "$STATE/mac" 2>/dev/null)
+	case $saved in
+	[0-9a-f][26ae]:[0-9a-f][0-9a-f]:[0-9a-f][0-9a-f]:[0-9a-f][0-9a-f]:[0-9a-f][0-9a-f]:[0-9a-f][0-9a-f])
+		mac=$saved
+		say "MAC address $mac (the EEPROM has none; kept from an earlier boot)"
+		return
+		;;
+	esac
+	# locally administered, unicast: the first byte's two low bits 10
+	set -- $(od -An -tx1 -N6 /dev/urandom)
+	first=$(printf '%02x' $(((0x$1 & 0xfc) | 0x02)))
+	mac="$first:$2:$3:$4:$5:$6"
+	if mkdir -p "$STATE" && echo "$mac" > "$STATE/mac.new" && mv -f "$STATE/mac.new" "$STATE/mac"; then
+		say "MAC address $mac (the EEPROM has none; made now and kept)"
+	else
+		problem "MAC address $mac for this boot only: /config can't be written"
+	fi
+}
+
+# -------------------------------------------------------- the network
+
+network_setting() {
+	fallback=0
+	case $network in
+	'' | dhcp) network=dhcp ;;
+	static)
+		ok=1
+		if ! ipv4_prefix "$address"; then
+			problem "network = static needs address = <a.b.c.d>/<prefix>, e.g. 192.168.1.50/24 (got \"$address\")"
+			ok=0
+		fi
+		if [ -n "$gateway" ] && ! ipv4 "$gateway"; then
+			problem "gateway \"$gateway\" is not an IPv4 address"
+			ok=0
+		fi
+		servers=""
+		for s in $(printf '%s' "$dns" | tr ',;' '  '); do
+			if ipv4 "$s"; then
+				servers="$servers $s"
+			else
+				problem "dns \"$s\" is not an IPv4 address"
+				ok=0
+			fi
+		done
+		if [ $ok = 0 ]; then
+			say "network: DHCP instead of the static settings above"
+			network=dhcp
+			fallback=1
+		fi
+		;;
+	*)
+		problem "network = \"$network\": dhcp or static; using DHCP"
+		network=dhcp
+		fallback=1
+		;;
+	esac
+
+	mkdir -p "$NETDIR"
+	{
+		echo "# web888-setup, from web888.txt"
+		echo "[Match]"
+		echo "Name=$NETIF"
+		if [ -n "$mac" ]; then
+			echo
+			echo "[Link]"
+			echo "MACAddress=$mac"
+		fi
+		echo
+		echo "[Network]"
+		if [ $network = dhcp ]; then
+			echo "DHCP=ipv4"
+			# with no DHCP server, still reachable straight from a laptop
+			echo "LinkLocalAddressing=yes"
+		else
+			echo "Address=$address"
+			[ -n "$gateway" ] && echo "Gateway=$gateway"
+			for s in $servers; do
+				echo "DNS=$s"
+			done
+			echo "LinkLocalAddressing=ipv6"
+		fi
+		echo "IPv6AcceptRA=yes"
+		if [ $network = dhcp ]; then
+			echo
+			echo "[DHCPv4]"
+			# the same lease at every boot (the machine ID, which the
+			# default identifier comes from, is new at every boot)
+			echo "ClientIdentifier=mac"
+		fi
+	} > "$NETDIR/10-web888.network.new"
+	mv -f "$NETDIR/10-web888.network.new" "$NETDIR/10-web888.network"
+	if [ $fallback = 1 ]; then
+		:
+	elif [ $network = dhcp ]; then
+		say "network: DHCP"
+	else
+		say "network: static $address${gateway:+, gateway $gateway}${servers:+, DNS$servers}"
+	fi
+}
+
+hostname_setting() {
+	h=$(printf '%s' "$hostname" | tr 'A-Z' 'a-z')
+	if [ -z "$h" ]; then
+		h=web888
+	elif ! valid_hostname "$h"; then
+		problem "hostname \"$hostname\": letters, digits and - only, up to 63; using web888"
+		h=web888
+	fi
+	if [ -z "${WEB888_BOOT:-}" ]; then
+		echo "$h" > /proc/sys/kernel/hostname
+	fi
+	say "hostname: $h (http://$h.local:8073)"
+}
+
+# ------------------------------------------------------ the password
+
+has_admin_password() {
+	grep -q '^[[:space:]]*admin_hash[[:space:]]*=' "$TOML" 2>/dev/null
+}
+set_admin_password() {
+	printf '%s\n' "$1" | "$WEB888D" passwd --config "$TOML" > /dev/null
+}
+# web888.txt with the password line replaced by "admin_password = (set)"
+# (the name in any case, as read_settings takes it), line ends as they were
+mark_password_taken() {
+	end=""
+	grep -q "$CR\$" "$TXT" && end=$CR
+	name='[Aa][Dd][Mm][Ii][Nn]_[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]'
+	sed "s/^\\([[:space:]]*$name[[:space:]]*=\\).*\$/\\1 (set)$end/" "$TXT" | put_file "$TXT"
+}
+
+password_setting() {
+	if [ ! -d "$CONFIG" ] || ! touch "$CONFIG/.web888-setup" 2>/dev/null; then
+		problem "the configuration partition isn't there: no admin password"
+		return
+	fi
+	rm -f "$CONFIG/.web888-setup"
+	if [ $have_password = 1 ] && [ "$admin_password" != "(set)" ] && [ -n "$admin_password" ]; then
+		if [ ${#admin_password} -lt 8 ]; then
+			problem "admin_password: at least 8 characters; not changed"
+		elif set_admin_password "$admin_password"; then
+			if mark_password_taken; then
+				say "admin password: set from web888.txt (the line now reads \"(set)\")"
+			else
+				say "admin password: set from web888.txt"
+			fi
+			[ -e "$PWTXT" ] && boot_writable && rm -f "$PWTXT"
+			return
+		else
+			problem "admin_password: web888d couldn't set it"
+		fi
+	fi
+	if has_admin_password; then
+		say "admin password: as before"
+		return
+	fi
+	# none yet: make one, so the admin pages are never open
+	pw=$(od -An -tx1 -N8 /dev/urandom | tr -d ' \n')
+	if ! set_admin_password "$pw"; then
+		problem "web888d couldn't set an admin password"
+		return
+	fi
+	{
+		echo "Admin password for the web admin pages of http://$h.local:8073:"
+		echo
+		echo "    $pw"
+		echo
+		echo "Made by the unit because web888.txt had none. To choose your own,"
+		echo "set admin_password in web888.txt; this file then goes away."
+	} | sed "s/\$/$CR/" | put_file "$PWTXT"
+	say "admin password: made by the unit, in web888-password.txt"
+}
+
+# ------------------------------------------------------------------ SSH
+
+ssh_setting() {
+	rm -rf "$SSHDIR"
+	if [ -z "$ssh_key" ]; then
+		say "SSH: off (no ssh_key)"
+		return
+	fi
+	case $ssh_key in
+	ssh-* | ecdsa-* | sk-*) ;;
+	*)
+		problem "ssh_key: not a public key line (ssh-ed25519 AAAA... or similar); SSH stays off"
+		return
+		;;
+	esac
+	mkdir -p "$SSHDIR"
+	chmod 700 "$SSHDIR"
+	printf '%s\n' "$ssh_key" > "$SSHDIR/authorized_keys"
+	chmod 600 "$SSHDIR/authorized_keys"
+	say "SSH: on for root with the key from web888.txt"
+}
+
+# ----------------------------------------------------------------- main
+
+board_info() {
+	slot=$(sed -n 's/.*rauc\.slot=\([A-Za-z]*\).*/\1/p' /proc/cmdline 2>/dev/null)
+	. /etc/os-release 2>/dev/null
+	say "web888-ng ${VERSION_ID:-?} (${BUILD_ID:-?}), root slot ${slot:-?}"
+}
+
+board_info
+if [ -e "$TXT" ]; then
+	read_settings
+else
+	say "no web888.txt on the card: the defaults"
+fi
+mac_setting
+network_setting
+hostname_setting
+password_setting
+ssh_setting
+[ $problems = 0 ] && say "no problems"
+
+# the log, rewritten only when it says something new
+if [ "$(sed "s/$CR\$//" "$LOG" 2>/dev/null)" != "$(printf '%s' "$report")" ]; then
+	printf '%s' "$report" | sed "s/\$/$CR/" | put_file "$LOG"
+fi
+boot_done
+exit 0

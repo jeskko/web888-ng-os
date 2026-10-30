@@ -8,6 +8,7 @@
 #   KAS_WORK=/data/yocto/web888 scripts/kas-podman.sh build kas/web888.yml:kas/dev.yml
 #
 # KAS_WORK: build directory (layers, build/, downloads; ~60 GB).
+# WEB888_MIRROR: passed on, for kas/mirror.yml.
 # The repo is mounted read-only at /repo; build from a plain clone, not a
 # git submodule checkout (kas needs a real .git directory), and don't edit
 # it while a build runs (BitBake re-parses changed files mid-build).
@@ -25,5 +26,6 @@ done
 exec podman run --rm --userns=keep-id --user "$(id -u):$(id -g)" \
     --entrypoint kas \
     -e HOME=/work/.home -e KAS_WORK_DIR=/work -e LANG=C.UTF-8 \
+    ${WEB888_MIRROR:+-e WEB888_MIRROR="$WEB888_MIRROR"} \
     -v "$REPO":/repo:ro -v "$KAS_WORK":/work \
     ghcr.io/siemens/kas/kas:5.5 $args

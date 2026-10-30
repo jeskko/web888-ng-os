@@ -1,0 +1,11 @@
+[Unit]
+Description=Mark this root slot good once web888d runs
+ConditionKernelCommandLine=rauc.slot
+After=web888d.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/web888-boot-ok
+
+[Install]
+WantedBy=multi-user.target

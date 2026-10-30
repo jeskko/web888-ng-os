@@ -1,0 +1,27 @@
+# Web-888 (web888-ng) settings. Edit on any computer, save, put the card
+# back in the Web-888: changes apply at the next power-on. A line that
+# starts with # is not used; remove the # to use a setting.
+# web888-setup.log on this card says what was applied, and any problem.
+
+# Admin password for the web admin pages (8 characters or more). Once the
+# unit has taken it, the line reads "admin_password = (set)" and the
+# password is no longer on this card. Write a new one here to change it.
+# Without one, the unit makes a password and writes it to
+# web888-password.txt on this card.
+#admin_password =
+
+# Network: dhcp (the default) or static. Without a DHCP server the unit
+# still takes a link-local address (169.254.x.x), so a computer plugged
+# straight into it can reach it at http://web888.local:8073.
+#network = dhcp
+#address = 192.168.1.50/24
+#gateway = 192.168.1.1
+#dns = 192.168.1.1
+
+# Name on the network: http://<hostname>.local:8073 (letters, digits and
+# -). Default web888.
+#hostname = web888
+
+# An SSH public key for root (one line, as in authorized_keys). There is
+# no other way to log in; without a key, SSH is off.
+#ssh_key =
