@@ -371,7 +371,7 @@ ssh_setting() {
 board_info() {
 	slot=$(sed -n 's/.*rauc\.slot=\([A-Za-z]*\).*/\1/p' /proc/cmdline 2>/dev/null)
 	. /etc/os-release 2>/dev/null
-	say "web888-ng ${VERSION_ID:-?} (${BUILD_ID:-?}), root slot ${slot:-?}"
+	say "web888-ng ${VERSION_ID:-?}${BUILD_ID:+ ($BUILD_ID)}, root slot ${slot:-?}"
 }
 
 board_info
