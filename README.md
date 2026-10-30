@@ -19,17 +19,23 @@ bump the recipe version and the two checksums from its `SHA256SUMS`. To
 try another bitstream, put it on the FAT boot partition (read-only at
 `/boot`) and change `/etc/default/web888d` to `serve --bitstream
 /boot/<file>.bit`. A configuration partition holds `web888d`'s
-configuration. Next: our own device tree, RAUC A/B, and the boot files for
-the real board.
+configuration.
+
+The SD card image (`web888-image-web888.rootfs.wic.xz`) boots the board
+directly: U-Boot SPL with our PS7 initialisation as `BOOT.BIN`, U-Boot
+choosing root slot A or B (`meta-web888/files/wic/web888-sd.wks`), the
+kernel and our device tree from the slot. The owner's settings go in
+`web888.txt` on the card's FAT partition (`web888-setup`). Tested in the
+emulator (web888-ng-hw `emu/tests/sd-image.sh`), not yet on a board:
+`docs/testing-the-sd-image.md`. Tags publish it as a release.
 
 Development image (empty root password, never for release):
 `kas-container build kas/web888.yml:kas/dev.yml`. Boot it in the
-emulator with `emu/run.sh --kernel <zImage> --initrd none --sd
-<image>.wic.qemu-sd --append "console=ttyPS0,115200 root=/dev/mmcblk0p2
-rootwait ro"`; it boots straight into web888d. To use the open
-driver without loading a bitstream, add `web888_sdr.pl_check=0` (the PL
-readiness check would refuse otherwise). Why Yocto and the planned SD
-layout: `docs/os-base.md` in web888-ng-hw.
+emulator as the board does, from a copy of the image grown to 2 GB with
+each slot's DTB given the emulator's changes (`emu/tests/sd-image.sh`
+does both): `emu/run.sh --bootrom --boot-mode sd --sd <copy>`; it boots
+straight into web888d. Why Yocto and the SD layout: `docs/os-base.md` in
+web888-ng-hw.
 
 ## Goals
 

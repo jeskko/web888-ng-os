@@ -1,6 +1,10 @@
 # First test release: an SD card image (draft)
 
-Status: **draft for discussion**, 2026-10-29.
+Status: **built and emulator-tested**, 2026-10-30 (drafted 2026-10-29).
+The image builds (`kas/web888.yml`) and passes web888-ng-hw's
+`emu/tests/sd-image.sh` (boot ROM → SPL → U-Boot → slot A, the ADC clock,
+web888.txt, the slot marked good, static network, fallback to slot B).
+Not yet run on a board; the tester's guide is `testing-the-sd-image.md`.
 
 The goal is one SD card image that a Web-888 owner can write to a spare card,
 boot, and use. They set the network and the admin password by editing a text
@@ -140,15 +144,24 @@ rewritten at each boot, so a tester can see why a setting didn't take.
 
 ## 6. Work, in order
 
-| # | work | where |
-|---|---|---|
-| 1 | DT for the real board; Si5351 set up from Linux; MAC from the EEPROM | os, hw docs |
-| 2 | `BOOT.BIN` in the os build (FSBL + U-Boot, env read-only from the EEPROM) | os |
-| 3 | `web888-setup` (the file, network, password, SSH key, log) + mDNS | os, server (`web888d passwd` from a file) |
-| 4 | SD image: a smaller FAT, `web888.txt` shipped, release CI on tags | os CI |
-| 5 | emulator tests of 2-4 | hw/emu |
-| 6 | first boot on a real board with someone at it; the check list | user / test unit |
-| 7 | release notes, issue template, pre-release | os |
+| # | work | where | state |
+|---|---|---|---|
+| 1 | DT for the real board; Si5351 set up by U-Boot (as the stock FSBL); MAC from the EEPROM (nvmem cell), a kept random one without | os | done |
+| 2 | `BOOT.BIN` in the os build: U-Boot SPL with our PS7 init, U-Boot with the A/B chooser | os | done |
+| 3 | `web888-setup` (the file, network, password, SSH key, log); mDNS from avahi | os | done |
+| 4 | SD image: 64 MB FAT, `web888.txt` shipped, release CI on tags | os CI | done |
+| 5 | emulator tests of 2-4 | hw/emu `tests/sd-image.sh` | done |
+| 6 | first boot on a real board with someone at it; the check list | user / test unit | open |
+| 7 | release notes, issue template, pre-release | os | open |
+
+Decided while building it: U-Boot programs the Si5351 (a script of I2C
+writes for the 24.576 MHz crystal) rather than Linux, since the PL runs
+on that clock and must have it before the bitstream loads; the boot
+scripts come from the U-Boot binary at every boot, only the chooser's
+variables from the saved environment; `web888-setup` runs only on an
+A/B boot (`rauc.slot` on the command line), so a chain-loaded image
+keeps its own settings; `web888.txt` is `key = value`, the hostname
+`web888` by default.
 
 ## 7. Open questions
 
