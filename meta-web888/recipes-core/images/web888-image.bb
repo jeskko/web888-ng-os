@@ -16,6 +16,9 @@ IMAGE_INSTALL += "web888-sdr web888d e2fsprogs-e2fsck web888-setup \
 IMAGE_LINGUAS = ""
 # the SD card image, compressed, with a block map for bmaptool
 IMAGE_FSTYPES += "squashfs-xz wic.xz wic.bmap"
+# (zynq-generic adds an emulator copy; tests/sd-image.sh of web888-ng-hw
+# makes its own)
+IMAGE_FSTYPES:remove = "wic.qemu-sd"
 
 # the SD card's FAT: BOOT.BIN, u-boot.img (IMAGE_BOOT_FILES) and
 # web888.txt
