@@ -48,9 +48,9 @@ jobs:
         env:
           RAUC_KEY: ${{ secrets.WEB888_RAUC_KEY }}
         run: |
-          umask 077
           key=$RUNNER_TEMP/rauc.key.pem
-          printf '%s\n' "$RAUC_KEY" > "$key"
+          # only the key file private (BitBake refuses a umask of 077)
+          (umask 077; printf '%s\n' "$RAUC_KEY" > "$key")
           trap 'rm -f "$key"' EXIT
           WEB888_RAUC_KEY=$key kas build kas/web888.yml:kas/ci.yml:kas/bundle.yml
       - uses: actions/upload-artifact@v4
