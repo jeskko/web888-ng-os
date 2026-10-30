@@ -34,7 +34,9 @@ web888_firmware_link() {
 }
 
 # SSH: root's key from web888.txt (web888-setup writes it to /run), the
-# host keys kept on the configuration partition
+# host keys kept on the configuration partition. Root logs in with that
+# key only: dropbear's default "-w" (no root at all) becomes "-s" (no
+# passwords); a dev image (allow-root-login) keeps its own arguments.
 web888_ssh() {
 	rm -rf ${IMAGE_ROOTFS}${ROOT_HOME}/.ssh
 	ln -s /run/web888/ssh ${IMAGE_ROOTFS}${ROOT_HOME}/.ssh
@@ -42,5 +44,6 @@ web888_ssh() {
 	if [ -e $f ]; then
 		sed -i '/^DROPBEAR_RSAKEY_DIR=/d' $f
 		echo "DROPBEAR_RSAKEY_DIR=/config/ssh" >> $f
+		sed -i 's/^DROPBEAR_EXTRA_ARGS="-w"$/DROPBEAR_EXTRA_ARGS="-s"/' $f
 	fi
 }
