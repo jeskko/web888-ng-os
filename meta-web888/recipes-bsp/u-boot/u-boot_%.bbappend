@@ -10,6 +10,11 @@
 # and PLL tables match the stock first-stage loader's.
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:${THISDIR}/files/ps7:${THISDIR}/../../files/dts:"
 
+# the same tag from U-Boot's GitHub mirror: source.denx.de served the
+# first clone at a few kB/s
+SRC_URI:remove = "git://source.denx.de/u-boot/u-boot.git;protocol=https;branch=master;tag=v${PV}"
+SRC_URI:prepend = "git://github.com/u-boot/u-boot.git;protocol=https;branch=master;tag=v${PV} "
+
 SRC_URI += " \
     file://0001-zynq-environment-in-raw-MMC-when-booting-from-SD.patch \
     file://web888.cfg \
