@@ -27,7 +27,10 @@ choosing root slot A or B (`meta-web888/files/wic/web888-sd.wks`), the
 kernel and our device tree from the slot. The owner's settings go in
 `web888.txt` on the card's FAT partition (`web888-setup`). Tested in the
 emulator (web888-ng-hw `emu/tests/sd-image.sh`), not yet on a board:
-`docs/testing-the-sd-image.md`. Tags publish it as a release.
+`docs/testing-the-sd-image.md`. Tags publish it as a release. To reach
+the receiver from the Internet without opening a port on the router,
+`web888.txt` can set up a tunnel (frp, Cloudflare Tunnel, rathole or
+chisel): `docs/tunnels.md`.
 
 Development image (empty root password, never for release):
 `kas-container build kas/web888.yml:kas/dev.yml`. Boot it in the

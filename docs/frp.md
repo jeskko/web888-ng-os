@@ -1,5 +1,8 @@
 # Reaching the Web-888 from the Internet with frp
 
+(The other tunnels, and what all of them have in common:
+[tunnels.md](tunnels.md).)
+
 The unit connects **out** to an frp server (`frps`) on a VPS; the VPS's web
 server (nginx) faces the public, with HTTPS. Nothing is opened on the
 unit's router.
@@ -137,7 +140,7 @@ this one another `frp_name` and `frp_remote_port`.
 ## Sources (checked 2026-10-30)
 
 * frp releases and checksums: https://github.com/fatedier/frp/releases/tag/v0.71.1
-  (`frp_0.71.1_linux_arm.tar.gz`, SHA-256 in `frp_sha256_checksums.txt`;
+  (`frp_0.71.1_linux_arm_hf.tar.gz`, SHA-256 in `frp_sha256_checksums.txt`;
   the recipe pins it).
 * frp configuration (TOML): https://gofrp.org/en/docs/reference/client-configures/
   (`loginFailExit`, `auth.*`, `[[proxies]]`).
