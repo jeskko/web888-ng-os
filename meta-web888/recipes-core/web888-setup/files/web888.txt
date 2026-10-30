@@ -31,17 +31,43 @@
 # limited by the CPU instead, up to 32 at once).
 #bitstream = standard
 
-# A tunnel to a public server (frp), so the receiver can be reached from
-# the Internet without opening a port on your router: the unit connects
-# out to the frps server of your VPS, which puts a web server (with
-# HTTPS) in front. See docs/frp.md. frp_server is host:port (default port
-# 7000); frp_token is the server's token (once the unit has taken it, the
-# line reads "frp_token = (set)"); frp_remote_port is the port frps opens
-# on the VPS for this unit, the one its web server forwards to; frp_name
-# names the tunnel there (default web888, unique per tunnel). The unit's
-# admin pages are then reachable from the Internet too: set a strong
-# admin_password.
+# Tunnels: the receiver reachable from the Internet without opening a
+# port on your router. The unit connects out; a server you run (frp,
+# rathole, chisel) or Cloudflare (cloudflared) faces the public, with
+# HTTPS. One is enough; docs/tunnels.md compares them and has the server
+# side. Each secret (token, password) is kept by the unit once taken and
+# its line then reads "(set)"; write a new one there to change it, remove
+# the tunnel's lines to turn it off. The admin pages are reachable from
+# the Internet too: set a strong admin_password.
+
+# frp: frp_server is your VPS's frps (host:port, default port 7000),
+# frp_token its token, frp_remote_port the port frps opens for this unit
+# (the one its web server forwards to), frp_name the tunnel's name there
+# (default web888, unique per tunnel).
 #frp_server = vps.example.org:7000
 #frp_token =
 #frp_remote_port = 18088
 #frp_name = web888
+
+# cloudflared (Cloudflare Tunnel, no VPS): the token of a tunnel made in
+# the Cloudflare dashboard, whose public hostname has the service
+# http://localhost:8073.
+#cloudflared_token =
+
+# rathole: rathole_server is your VPS's rathole server (host:port,
+# default port 2333), rathole_server_key its Noise public key,
+# rathole_token the token of this unit's service there, rathole_name the
+# service's name (default web888).
+#rathole_server = vps.example.org:2333
+#rathole_server_key =
+#rathole_token =
+#rathole_name = web888
+
+# chisel (over HTTP or HTTPS, so it can share your web server's port):
+# chisel_server is the server's URL, chisel_auth its user:password,
+# chisel_remote_port the port it opens for this unit on its own loopback,
+# chisel_fingerprint the server's key fingerprint (from its log).
+#chisel_server = https://tunnel.example.org
+#chisel_auth =
+#chisel_remote_port = 18088
+#chisel_fingerprint =

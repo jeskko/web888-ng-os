@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 SUMMARY = "frp client (frpc): a reverse tunnel from the Web-888 to a public VPS"
-DESCRIPTION = "The frp project's static ARM release binary of frpc, checked \
+DESCRIPTION = "The frp project's static ARM (hard float) release binary of frpc, checked \
 by SHA-256. web888-setup writes its configuration from the frp_* settings \
 in web888.txt; frpc.service runs only when they are there. docs/frp.md \
 has the VPS side."
@@ -9,13 +9,13 @@ LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=fa818a259cbed7ce8bc2a22d35a464fc"
 
 SRC_URI = " \
-    https://github.com/fatedier/frp/releases/download/v${PV}/frp_${PV}_linux_arm.tar.gz;name=frp \
+    https://github.com/fatedier/frp/releases/download/v${PV}/frp_${PV}_linux_arm_hf.tar.gz;name=frp \
     file://frpc.service \
 "
 # from the release's frp_sha256_checksums.txt
-SRC_URI[frp.sha256sum] = "8eb6fe66a3b36db24ca0de44fb01e6742d0ff60e30f462c9662f41813bbf4376"
+SRC_URI[frp.sha256sum] = "a40116f15f2a05b7001f985f1f1ccb2570e2aa41329b06de76a82e71495786db"
 
-S = "${UNPACKDIR}/frp_${PV}_linux_arm"
+S = "${UNPACKDIR}/frp_${PV}_linux_arm_hf"
 
 inherit systemd
 

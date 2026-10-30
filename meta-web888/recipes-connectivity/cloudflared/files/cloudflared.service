@@ -1,0 +1,24 @@
+[Unit]
+Description=Cloudflare Tunnel: web888d through Cloudflare
+Documentation=file:///boot/web888.txt
+# /run/web888/cloudflared.env (the tunnel's token) is written by
+# web888-setup from cloudflared_token in web888.txt; without it there is
+# no tunnel. The public hostname and its service (http://localhost:8073)
+# are set at Cloudflare.
+ConditionPathExists=/run/web888/cloudflared.env
+After=network-online.target web888-setup.service web888d.service
+Wants=network-online.target web888d.service
+
+[Service]
+EnvironmentFile=/run/web888/cloudflared.env
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel run
+Restart=always
+RestartSec=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+
+[Install]
+WantedBy=multi-user.target

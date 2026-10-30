@@ -1,0 +1,23 @@
+[Unit]
+Description=chisel client: web888d on a public VPS
+Documentation=file:///boot/web888.txt
+# /run/web888/chisel.env is written by web888-setup from the chisel_*
+# settings in web888.txt; without them there is no tunnel. AUTH (user:
+# password) is read by chisel from the environment.
+ConditionPathExists=/run/web888/chisel.env
+After=network-online.target web888-setup.service web888d.service
+Wants=network-online.target web888d.service
+
+[Service]
+EnvironmentFile=/run/web888/chisel.env
+ExecStart=/usr/bin/chisel client --keepalive 25s --max-retry-interval 1m $CHISEL_ARGS
+Restart=always
+RestartSec=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+
+[Install]
+WantedBy=multi-user.target

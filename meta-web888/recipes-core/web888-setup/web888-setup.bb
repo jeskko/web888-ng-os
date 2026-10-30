@@ -2,8 +2,8 @@
 SUMMARY = "Web-888 owner's settings from web888.txt; A/B boot slot marked good"
 DESCRIPTION = "web888-setup applies web888.txt from the SD card's FAT \
 partition at boot (network, hostname, admin password, SSH key, a stable \
-MAC without one in the EEPROM, the frp tunnel to a public VPS). web888-boot-ok gives this boot's root \
-slot its tries back once web888d runs. Also: the U-Boot environment's \
+MAC without one in the EEPROM, the tunnels to the Internet). \
+web888-boot-ok gives this boot's root slot its tries back once web888d runs. Also: the U-Boot environment's \
 place for fw_setenv, the watchdog fed by systemd, SSH host keys on the \
 configuration partition."
 LICENSE = "GPL-3.0-or-later"
@@ -49,6 +49,6 @@ addtask deploy after do_install before do_build
 FILES:${PN} += "${systemd_system_unitdir} ${systemd_unitdir}/system.conf.d"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-# web888d passwd, fw_printenv/fw_setenv, mount, od, sed; frp: the frpc
-# that the frp_* settings configure
-RDEPENDS:${PN} = "web888d libubootenv-bin frp"
+# web888d passwd, fw_printenv/fw_setenv, mount, od, sed (the tunnels'
+# clients are in the image)
+RDEPENDS:${PN} = "web888d libubootenv-bin"

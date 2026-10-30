@@ -6,14 +6,15 @@
 # SSH key; a stable MAC address when the EEPROM has none. What it did
 # goes to web888-setup.log next to web888.txt. Also the bitstream web888d
 # loads (standard or channelizer), as its command line in /run, and the
-# frp tunnel to a public VPS (frp_* settings: frpc's configuration in
-# /run, the token kept on the configuration partition).
+# tunnels to the Internet (frp, cloudflared, rathole, chisel: each
+# client's configuration in /run, its secret kept on the configuration
+# partition).
 #
 # The FAT is written only when something changes: the password line
 # replaced by "admin_password = (set)" once the password is taken (the
-# same for frp_token), a
-# made-up password in web888-password.txt, the log when its text
-# changes. Each write is a copy then a rename.
+# same for the tunnels' secrets), a made-up password in
+# web888-password.txt, the log when its text changes. Each write is a
+# copy then a rename.
 #
 # The paths can be moved for tests (WEB888_BOOT, WEB888_CONFIG,
 # WEB888_RUN, WEB888_SYS, WEB888D).
@@ -90,7 +91,9 @@ unquote() {
 
 admin_password="" have_password=0
 network="" address="" gateway="" dns="" hostname="" ssh_key="" bitstream=""
-frp_server="" frp_token="" frp_name="" frp_remote_port=""
+frp_server="" frp_token="" frp_name="" frp_remote_port="" cloudflared_token=""
+rathole_server="" rathole_token="" rathole_name="" rathole_server_key=""
+chisel_server="" chisel_auth="" chisel_fingerprint="" chisel_remote_port=""
 
 read_settings() {
 	n=0
@@ -122,6 +125,15 @@ read_settings() {
 		frp_token) frp_token=$val ;;
 		frp_name) frp_name=$val ;;
 		frp_remote_port) frp_remote_port=$val ;;
+		cloudflared_token) cloudflared_token=$val ;;
+		rathole_server) rathole_server=$val ;;
+		rathole_token) rathole_token=$val ;;
+		rathole_name) rathole_name=$val ;;
+		rathole_server_key) rathole_server_key=$val ;;
+		chisel_server) chisel_server=$val ;;
+		chisel_auth) chisel_auth=$val ;;
+		chisel_fingerprint) chisel_fingerprint=$val ;;
+		chisel_remote_port) chisel_remote_port=$val ;;
 		*) problem "web888.txt line $n: unknown setting \"$key\"" ;;
 		esac
 	done < "$TXT"
@@ -417,10 +429,18 @@ bitstream_setting() {
 	echo "WEB888D_EXTRA=\"$extra\"" > "$WEB888D_ENV"
 }
 
-# ------------------------------------------------------------------ frp
+# -------------------------------------------------------------- tunnels
 
-FRP_TOKEN=$STATE/frp-token
+# Tunnels to the Internet without opening a port on the router: frp,
+# rathole and chisel to the owner's VPS, cloudflared to Cloudflare. Each
+# client's service starts only when its configuration is in /run. Their
+# secrets are kept on the configuration partition once taken, and their
+# lines in web888.txt read "(set)".
+
 FRP_TOML=$RUN/web888/frpc.toml
+CLOUDFLARED_ENV=$RUN/web888/cloudflared.env
+RATHOLE_TOML=$RUN/web888/rathole.toml
+CHISEL_ENV=$RUN/web888/chisel.env
 WEB_PORT=8073
 
 port_ok() {
@@ -430,10 +450,74 @@ port_ok() {
 	[ ${#1} -le 5 ] && [ "$1" -ge 1 ] && [ "$1" -le 65535 ]
 }
 
-# Connections through frpc come from 127.0.0.1; web888d takes the
-# visitor's address from X-Forwarded-For (set by the VPS's web server)
-# only from trusted proxies. Without this every visitor would count as
-# one address in the per-address limits.
+# host_port SETTING VALUE DEFAULT_PORT: tunnel_host and tunnel_port, or a
+# problem
+host_port() {
+	tunnel_host=$2
+	tunnel_port=$3
+	case $2 in
+	*:*)
+		tunnel_host=${2%:*}
+		tunnel_port=${2##*:}
+		;;
+	esac
+	case $tunnel_host in
+	'' | -* | *[!A-Za-z0-9.-]*)
+		problem "$1 \"$2\": host[:port], e.g. vps.example.org:$3; no tunnel"
+		return 1
+		;;
+	esac
+	if ! port_ok "$tunnel_port"; then
+		problem "$1 \"$2\": the port must be 1-65535; no tunnel"
+		return 1
+	fi
+}
+
+# name_ok SETTING VALUE: a name for the tunnel at the server
+name_ok() {
+	case $2 in
+	'' | *[!A-Za-z0-9_-]*)
+		problem "$1 \"$2\": letters, digits, - and _ only; no tunnel"
+		return 1
+		;;
+	esac
+}
+
+# keep_secret SETTING VALUE [CHECK]: a new value from web888.txt (that
+# the function CHECK takes) goes to the configuration partition and its
+# line then reads "(set)"; the kept value comes back in $secret (empty:
+# none)
+keep_secret() {
+	file=$STATE/$(printf '%s' "$1" | tr _ -)
+	if [ -n "$2" ] && [ "$2" != "(set)" ]; then
+		if printf '%s' "$2" | grep -q '["\\$`[:cntrl:][:space:]]'; then
+			problem "$1: no quotes, backslashes, \$, \` or spaces; not changed"
+		elif [ $# -gt 2 ] && ! "$3" "$2"; then
+			problem "$1: $check_says; not changed"
+		elif mkdir -p "$STATE" && (umask 077; printf '%s\n' "$2" > "$file.new") &&
+			mv -f "$file.new" "$file"; then
+			if mark_taken "$1"; then
+				say "$1: taken from web888.txt (the line now reads \"(set)\")"
+			else
+				say "$1: taken from web888.txt"
+			fi
+		else
+			problem "$1: the configuration partition can't be written; not kept"
+		fi
+	fi
+	secret=$(cat "$file" 2>/dev/null)
+}
+
+# private FILE: stdin to FILE, readable by root only
+private() {
+	mkdir -p "$(dirname "$1")"
+	(umask 077; cat > "$1.new") && mv -f "$1.new" "$1"
+}
+
+# Connections through a tunnel client come from 127.0.0.1; web888d takes
+# the visitor's address from X-Forwarded-For (set by the VPS's web server
+# or by Cloudflare) only from trusted proxies. Without this every visitor
+# would count as one address in the per-address limits.
 trust_loopback() {
 	if grep '^[[:space:]]*trusted_proxies[[:space:]]*=' "$TOML" 2>/dev/null | grep -q '127\.0\.0\.1'; then
 		return
@@ -446,10 +530,10 @@ trust_loopback() {
 			-e 's/^\([[:space:]]*trusted_proxies[[:space:]]*=[[:space:]]*\[[^]]*[^][:space:]]\)[[:space:]]*\]/\1, "127.0.0.1"]/' \
 			"$TOML" > "$TOML.new"
 		if grep '^[[:space:]]*trusted_proxies' "$TOML.new" | grep -q '127\.0\.0\.1' && mv -f "$TOML.new" "$TOML"; then
-			say "frp: 127.0.0.1 added to trusted_proxies in web888d's configuration"
+			say "tunnel: 127.0.0.1 added to trusted_proxies in web888d's configuration"
 		else
 			rm -f "$TOML.new"
-			problem "frp: trusted_proxies in $TOML is not a one-line list: add \"127.0.0.1\" yourself, or visitors count as one address in the limits"
+			problem "tunnel: trusted_proxies in $TOML is not a one-line list: add \"127.0.0.1\" yourself, or visitors count as one address in the limits"
 		fi
 		return
 	fi
@@ -464,80 +548,38 @@ trusted_proxies = ["127.0.0.1"]/' "$TOML" > "$TOML.new"
 		} > "$TOML.new"
 	fi
 	if mv -f "$TOML.new" "$TOML"; then
-		say "frp: trusted_proxies = [\"127.0.0.1\"] added to web888d's configuration"
+		say "tunnel: trusted_proxies = [\"127.0.0.1\"] added to web888d's configuration"
 	else
-		problem "frp: couldn't add trusted_proxies to $TOML: visitors count as one address in the limits"
+		problem "tunnel: couldn't add trusted_proxies to $TOML: visitors count as one address in the limits"
 	fi
 }
 
-# The tunnel: frpc (frpc.service starts only when its configuration is
-# in /run) takes web888d's port to a port on the VPS, where a web server
-# faces the public. The token is kept on the configuration partition
-# once taken, and its line in web888.txt reads "(set)".
+# frp: frpc takes web888d's port to a port on the VPS (frps), where a web
+# server faces the public. TLS to frps is frp's default.
 frp_setting() {
-	rm -f "$FRP_TOML"
 	if [ -z "$frp_server" ]; then
 		say "frp: off (no frp_server)"
 		return
 	fi
-	host=$frp_server
-	port=7000
-	case $frp_server in
-	*:*)
-		host=${frp_server%:*}
-		port=${frp_server##*:}
-		;;
-	esac
-	case $host in
-	'' | -* | *[!A-Za-z0-9.-]*)
-		problem "frp_server \"$frp_server\": host[:port], e.g. vps.example.org:7000; no tunnel"
-		return
-		;;
-	esac
-	if ! port_ok "$port"; then
-		problem "frp_server \"$frp_server\": the port must be 1-65535; no tunnel"
-		return
-	fi
+	host_port frp_server "$frp_server" 7000 || return
 	if ! port_ok "$frp_remote_port"; then
 		problem "frp_remote_port \"$frp_remote_port\": 1-65535, the port on the VPS; no tunnel"
 		return
 	fi
 	name=${frp_name:-web888}
-	case $name in
-	*[!A-Za-z0-9_-]*)
-		problem "frp_name \"$name\": letters, digits, - and _ only; no tunnel"
-		return
-		;;
-	esac
-	if [ -n "$frp_token" ] && [ "$frp_token" != "(set)" ]; then
-		if printf '%s' "$frp_token" | grep -q '["\\[:cntrl:]]'; then
-			problem "frp_token: no quotes, backslashes or control characters; not changed"
-		elif mkdir -p "$STATE" && (umask 077; printf '%s\n' "$frp_token" > "$FRP_TOKEN.new") &&
-			mv -f "$FRP_TOKEN.new" "$FRP_TOKEN"; then
-			if mark_taken frp_token; then
-				say "frp token: taken from web888.txt (the line now reads \"(set)\")"
-			else
-				say "frp token: taken from web888.txt"
-			fi
-		else
-			problem "frp_token: the configuration partition can't be written; not kept"
-		fi
-	fi
-	token=$(cat "$FRP_TOKEN" 2>/dev/null)
-	if [ -z "$token" ]; then
+	name_ok frp_name "$name" || return
+	keep_secret frp_token "$frp_token"
+	if [ -z "$secret" ]; then
 		problem "frp_token: none (the VPS's frps token); no tunnel"
 		return
 	fi
-	mkdir -p "$(dirname "$FRP_TOML")"
-	(
-		umask 077
-		cat > "$FRP_TOML.new" <<TOMLEND
+	private "$FRP_TOML" <<TOMLEND || { problem "frp: couldn't write frpc's configuration; no tunnel"; return; }
 # web888-setup, from web888.txt
-serverAddr = "$host"
-serverPort = $port
+serverAddr = "$tunnel_host"
+serverPort = $tunnel_port
 loginFailExit = false
 auth.method = "token"
-auth.token = "$token"
+auth.token = "$secret"
 log.to = "console"
 
 [[proxies]]
@@ -547,12 +589,135 @@ localIP = "127.0.0.1"
 localPort = $WEB_PORT
 remotePort = $frp_remote_port
 TOMLEND
-	) && mv -f "$FRP_TOML.new" "$FRP_TOML" || {
-		problem "frp: couldn't write frpc's configuration; no tunnel"
+	say "frp: web888d to $tunnel_host:$tunnel_port as \"$name\", port $frp_remote_port on the VPS"
+	trust_loopback
+}
+
+cloudflared_token_ok() {
+	check_says="not a tunnel token (letters, digits, + / = _ -)"
+	case $1 in
+	*[!A-Za-z0-9+/=_-]*) return 1 ;;
+	esac
+}
+
+# Cloudflare Tunnel: the tunnel, its public hostname and its service
+# (http://localhost:8073) are made at Cloudflare; the unit only needs the
+# tunnel's token.
+cloudflared_setting() {
+	if [ -z "$cloudflared_token" ]; then
+		say "cloudflared: off (no cloudflared_token)"
+		return
+	fi
+	keep_secret cloudflared_token "$cloudflared_token" cloudflared_token_ok
+	if [ -z "$secret" ]; then
+		problem "cloudflared_token: none kept yet (the token from Cloudflare); no tunnel"
+		return
+	fi
+	printf 'TUNNEL_TOKEN=%s\n' "$secret" | private "$CLOUDFLARED_ENV" || {
+		problem "cloudflared: couldn't write its token to /run; no tunnel"
 		return
 	}
-	say "frp: web888d to $host:$port as \"$name\", port $frp_remote_port on the VPS"
+	say "cloudflared: web888d through Cloudflare (the hostname is set there)"
 	trust_loopback
+}
+
+# rathole: like frp, the VPS (rathole --server) opens the public port for
+# the service of this name. Encrypted with Noise: the unit checks the
+# server by its public key.
+rathole_setting() {
+	if [ -z "$rathole_server" ]; then
+		say "rathole: off (no rathole_server)"
+		return
+	fi
+	host_port rathole_server "$rathole_server" 2333 || return
+	name=${rathole_name:-web888}
+	name_ok rathole_name "$name" || return
+	case $rathole_server_key in
+	'' | *[!A-Za-z0-9+/=]*)
+		problem "rathole_server_key: the server's Noise public key (from rathole --genkey); no tunnel"
+		return
+		;;
+	esac
+	keep_secret rathole_token "$rathole_token"
+	if [ -z "$secret" ]; then
+		problem "rathole_token: none (the service's token on the VPS); no tunnel"
+		return
+	fi
+	private "$RATHOLE_TOML" <<TOMLEND || { problem "rathole: couldn't write its configuration; no tunnel"; return; }
+# web888-setup, from web888.txt
+[client]
+remote_addr = "$tunnel_host:$tunnel_port"
+
+[client.transport]
+type = "noise"
+
+[client.transport.noise]
+remote_public_key = "$rathole_server_key"
+
+[client.services.$name]
+token = "$secret"
+local_addr = "127.0.0.1:$WEB_PORT"
+TOMLEND
+	say "rathole: web888d to $tunnel_host:$tunnel_port as \"$name\""
+	trust_loopback
+}
+
+chisel_auth_ok() {
+	check_says="user:password, as at the server"
+	case $1 in
+	?*:?*) ;;
+	*) return 1 ;;
+	esac
+}
+
+# chisel: SSH over a WebSocket, so the VPS's web server can carry it on
+# its HTTPS port; the unit's port is opened on the VPS's loopback only.
+chisel_setting() {
+	if [ -z "$chisel_server" ]; then
+		say "chisel: off (no chisel_server)"
+		return
+	fi
+	case $chisel_server in
+	*[!A-Za-z0-9.:/_-]* | -*)
+		problem "chisel_server \"$chisel_server\": a URL (https://vps.example.org) or host:port; no tunnel"
+		return
+		;;
+	esac
+	if ! port_ok "$chisel_remote_port"; then
+		problem "chisel_remote_port \"$chisel_remote_port\": 1-65535, the port on the VPS; no tunnel"
+		return
+	fi
+	fingerprint=""
+	case $chisel_fingerprint in
+	'') ;;
+	*[!A-Za-z0-9+/=]*)
+		problem "chisel_fingerprint: the server's fingerprint (44 characters, from its log); no tunnel"
+		return
+		;;
+	*) fingerprint="--fingerprint $chisel_fingerprint " ;;
+	esac
+	keep_secret chisel_auth "$chisel_auth" chisel_auth_ok
+	if [ -z "$secret" ]; then
+		problem "chisel_auth: none (user:password, as at the server); no tunnel"
+		return
+	fi
+	remote="R:127.0.0.1:$chisel_remote_port:127.0.0.1:$WEB_PORT"
+	printf 'AUTH=%s\nCHISEL_ARGS=%s%s %s\n' "$secret" "$fingerprint" "$chisel_server" "$remote" |
+		private "$CHISEL_ENV" || {
+		problem "chisel: couldn't write its settings to /run; no tunnel"
+		return
+	}
+	say "chisel: web888d to $chisel_server, port $chisel_remote_port on the VPS${fingerprint:+ (fingerprint checked)}"
+	[ -z "$fingerprint" ] && say "chisel: no chisel_fingerprint: the server's key is not checked"
+	trust_loopback
+}
+
+tunnel_settings() {
+	rm -f "$FRP_TOML" "$CLOUDFLARED_ENV" "$RATHOLE_TOML" "$CHISEL_ENV"
+	frp_setting
+	cloudflared_setting
+	rathole_setting
+	chisel_setting
 }
 
 # ----------------------------------------------------------------- main
@@ -575,7 +740,7 @@ hostname_setting
 password_setting
 ssh_setting
 bitstream_setting
-frp_setting
+tunnel_settings
 [ $problems = 0 ] && say "no problems"
 
 # the log, rewritten only when it says something new

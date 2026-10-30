@@ -12,6 +12,9 @@ IMAGE_FEATURES += "read-only-rootfs ssh-server-dropbear"
 # root slot it chose. web888-setup: web888.txt, the slot marked good.
 IMAGE_INSTALL += "web888-sdr web888d e2fsprogs-e2fsck web888-setup \
                   kernel-image kernel-devicetree"
+# The tunnels' clients (frp, Cloudflare Tunnel, rathole, chisel): each
+# runs only when web888.txt sets it up (web888-setup, docs/tunnels.md).
+IMAGE_INSTALL += "frp cloudflared rathole chisel"
 
 IMAGE_LINGUAS = ""
 # the SD card image, compressed, with a block map for bmaptool

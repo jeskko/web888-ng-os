@@ -1,0 +1,21 @@
+[Unit]
+Description=rathole client: web888d on a public VPS
+Documentation=file:///boot/web888.txt
+# /run/web888/rathole.toml is written by web888-setup from the rathole_*
+# settings in web888.txt; without them there is no tunnel
+ConditionPathExists=/run/web888/rathole.toml
+After=network-online.target web888-setup.service web888d.service
+Wants=network-online.target web888d.service
+
+[Service]
+ExecStart=/usr/bin/rathole --client /run/web888/rathole.toml
+Restart=always
+RestartSec=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+
+[Install]
+WantedBy=multi-user.target
