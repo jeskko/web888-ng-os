@@ -42,8 +42,17 @@ jobs:
       KAS_REPO_REF_DIR: /srv/yocto/repos
     steps:
       - uses: actions/checkout@v4
+      # the update bundle is signed with the release key (a repository
+      # secret, written to a file only for the build)
       - name: build
-        run: kas build kas/web888.yml:kas/ci.yml
+        env:
+          RAUC_KEY: ${{ secrets.WEB888_RAUC_KEY }}
+        run: |
+          umask 077
+          key=$RUNNER_TEMP/rauc.key.pem
+          printf '%s\n' "$RAUC_KEY" > "$key"
+          trap 'rm -f "$key"' EXIT
+          WEB888_RAUC_KEY=$key kas build kas/web888.yml:kas/ci.yml:kas/bundle.yml
       - uses: actions/upload-artifact@v4
         with:
           name: web888-image
@@ -57,6 +66,7 @@ jobs:
             build/tmp/deploy/images/web888/boot.bin
             build/tmp/deploy/images/web888/u-boot.img
             build/tmp/deploy/images/web888/web888-chainboot-initramfs-web888.cpio.gz
+            build/tmp/deploy/images/web888/web888-bundle-web888.raucb
             build/tmp/deploy/images/web888/*.spdx.json
           if-no-files-found: error
       - name: release files
@@ -72,6 +82,8 @@ jobs:
           # the same system, web888.txt choosing the channelizer bitstream
           cp -L $d/web888-image-channelizer-web888.rootfs.wic.xz release/web888-ng-sd-$v-channelizer.img.xz
           cp -L $d/web888-image-channelizer-web888.rootfs.wic.bmap release/web888-ng-sd-$v-channelizer.img.bmap
+          # the update for units running either image: rauc install <URL>
+          cp -L $d/web888-bundle-web888.raucb release/web888-ng-$v.raucb
           (cd release && sha256sum * > SHA256SUMS)
       - uses: actions/upload-artifact@v4
         if: startsWith(github.ref, 'refs/tags/v')

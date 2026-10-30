@@ -47,6 +47,11 @@ repos:
     layers:
       meta-xilinx-core:
 
+  meta-rauc:
+    url: https://github.com/rauc/meta-rauc
+    layers:
+      .:
+
 local_conf_header:
   web888: |
     # remove work directories after each recipe: keeps a build under ~60 GB

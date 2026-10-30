@@ -10,3 +10,5 @@ overrides:
       commit: 673e8d7c5dcd14de58092eb73e6ecc5eee5c1735
     meta-xilinx:
       commit: 1231e93e0aa083d67ad60e9670733addcc501e92
+    meta-rauc:
+      commit: 38da0e5866a953e664001ba90b5edad68d68cd5d

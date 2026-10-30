@@ -15,10 +15,17 @@ IMAGE_INSTALL += "web888-sdr web888d e2fsprogs-e2fsck web888-setup \
 # The tunnels' clients (frp, Cloudflare Tunnel, rathole, chisel): each
 # runs only when web888.txt sets it up (web888-setup, docs/tunnels.md).
 IMAGE_INSTALL += "frp cloudflared rathole chisel"
+# Updates: RAUC installs a bundle (web888-bundle) to the other root slot
+# and grows its file system to the slot (resize2fs; system.conf resize).
+# web888-boot-ok marks a slot good, after web888d has run, instead of
+# RAUC's own mark-good at boot.
+IMAGE_INSTALL += "rauc e2fsprogs-resize2fs"
+BAD_RECOMMENDATIONS += "rauc-mark-good"
 
 IMAGE_LINGUAS = ""
 # the SD card image, compressed, with a block map for bmaptool
-IMAGE_FSTYPES += "squashfs-xz wic.xz wic.bmap"
+IMAGE_FSTYPES += "squashfs-xz wic.xz wic.bmap ext4"
+# (ext4: the root for the update bundle)
 # (zynq-generic adds an emulator copy; tests/sd-image.sh of web888-ng-hw
 # makes its own)
 IMAGE_FSTYPES:remove = "wic.qemu-sd"

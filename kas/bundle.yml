@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# The update bundle too, signed with the release key:
+#   WEB888_RAUC_KEY=<key.pem> kas build kas/web888.yml:kas/bundle.yml
+# (CI: the key from a secret; scripts/kas-podman.sh mounts it.)
+header:
+  version: 14
+
+env:
+  WEB888_RAUC_KEY: null
+
+target:
+  - web888-image
+  - web888-image-channelizer
+  - web888-chainboot-initramfs
+  - web888-bundle
