@@ -5,10 +5,13 @@
 # web888d start: the network, the hostname, the admin password and an
 # SSH key; a stable MAC address when the EEPROM has none. What it did
 # goes to web888-setup.log next to web888.txt. Also the bitstream web888d
-# loads (standard or channelizer), as its command line in /run.
+# loads (standard or channelizer), as its command line in /run, and the
+# frp tunnel to a public VPS (frp_* settings: frpc's configuration in
+# /run, the token kept on the configuration partition).
 #
 # The FAT is written only when something changes: the password line
-# replaced by "admin_password = (set)" once the password is taken, a
+# replaced by "admin_password = (set)" once the password is taken (the
+# same for frp_token), a
 # made-up password in web888-password.txt, the log when its text
 # changes. Each write is a copy then a rename.
 #
@@ -87,6 +90,7 @@ unquote() {
 
 admin_password="" have_password=0
 network="" address="" gateway="" dns="" hostname="" ssh_key="" bitstream=""
+frp_server="" frp_token="" frp_name="" frp_remote_port=""
 
 read_settings() {
 	n=0
@@ -114,6 +118,10 @@ read_settings() {
 		hostname) hostname=$val ;;
 		ssh_key) ssh_key=$val ;;
 		bitstream) bitstream=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
+		frp_server) frp_server=$val ;;
+		frp_token) frp_token=$val ;;
+		frp_name) frp_name=$val ;;
+		frp_remote_port) frp_remote_port=$val ;;
 		*) problem "web888.txt line $n: unknown setting \"$key\"" ;;
 		esac
 	done < "$TXT"
@@ -297,14 +305,30 @@ has_admin_password() {
 set_admin_password() {
 	printf '%s\n' "$1" | "$WEB888D" passwd --config "$TOML" > /dev/null
 }
-# web888.txt with the password line replaced by "admin_password = (set)"
-# (the name in any case, as read_settings takes it), line ends as they were
-mark_password_taken() {
+# NAME with each letter as [nN], so sed takes it in any case
+# (as read_settings does)
+any_case() {
+	s=$1
+	out=""
+	while [ -n "$s" ]; do
+		c=${s%"${s#?}"}
+		s=${s#?}
+		case $c in
+		_) out="${out}_" ;;
+		*) out="$out[$c$(printf '%s' "$c" | tr 'a-z' 'A-Z')]" ;;
+		esac
+	done
+	printf '%s' "$out"
+}
+# web888.txt with the value of setting NAME replaced by "(set)" (the name
+# in any case), line ends as they were
+mark_taken() {
 	end=""
 	grep -q "$CR\$" "$TXT" && end=$CR
-	name='[Aa][Dd][Mm][Ii][Nn]_[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]'
-	sed "s/^\\([[:space:]]*$name[[:space:]]*=\\).*\$/\\1 (set)$end/" "$TXT" | put_file "$TXT"
+	pat=$(any_case "$1")
+	sed "s/^\\([[:space:]]*$pat[[:space:]]*=\\).*\$/\\1 (set)$end/" "$TXT" | put_file "$TXT"
 }
+mark_password_taken() { mark_taken admin_password; }
 
 password_setting() {
 	if [ ! -d "$CONFIG" ] || ! touch "$CONFIG/.web888-setup" 2>/dev/null; then
@@ -393,6 +417,144 @@ bitstream_setting() {
 	echo "WEB888D_EXTRA=\"$extra\"" > "$WEB888D_ENV"
 }
 
+# ------------------------------------------------------------------ frp
+
+FRP_TOKEN=$STATE/frp-token
+FRP_TOML=$RUN/web888/frpc.toml
+WEB_PORT=8073
+
+port_ok() {
+	case $1 in
+	'' | *[!0-9]*) return 1 ;;
+	esac
+	[ ${#1} -le 5 ] && [ "$1" -ge 1 ] && [ "$1" -le 65535 ]
+}
+
+# Connections through frpc come from 127.0.0.1; web888d takes the
+# visitor's address from X-Forwarded-For (set by the VPS's web server)
+# only from trusted proxies. Without this every visitor would count as
+# one address in the per-address limits.
+trust_loopback() {
+	if grep '^[[:space:]]*trusted_proxies[[:space:]]*=' "$TOML" 2>/dev/null | grep -q '127\.0\.0\.1'; then
+		return
+	fi
+	if grep -q '^[[:space:]]*trusted_proxies[[:space:]]*=' "$TOML" 2>/dev/null; then
+		# web888d writes "trusted_proxies = []" itself; a list on one
+		# line gets 127.0.0.1 too
+		sed -e 's/^\([[:space:]]*trusted_proxies[[:space:]]*=[[:space:]]*\[\)[[:space:]]*\]/\1"127.0.0.1"]/' \
+			-e t \
+			-e 's/^\([[:space:]]*trusted_proxies[[:space:]]*=[[:space:]]*\[[^]]*[^][:space:]]\)[[:space:]]*\]/\1, "127.0.0.1"]/' \
+			"$TOML" > "$TOML.new"
+		if grep '^[[:space:]]*trusted_proxies' "$TOML.new" | grep -q '127\.0\.0\.1' && mv -f "$TOML.new" "$TOML"; then
+			say "frp: 127.0.0.1 added to trusted_proxies in web888d's configuration"
+		else
+			rm -f "$TOML.new"
+			problem "frp: trusted_proxies in $TOML is not a one-line list: add \"127.0.0.1\" yourself, or visitors count as one address in the limits"
+		fi
+		return
+	fi
+	[ -f "$TOML" ] || : > "$TOML"
+	if grep -q '^\[web\][[:space:]]*$' "$TOML"; then
+		sed 's/^\[web\][[:space:]]*$/&\
+trusted_proxies = ["127.0.0.1"]/' "$TOML" > "$TOML.new"
+	else
+		{
+			cat "$TOML"
+			printf '\n[web]\ntrusted_proxies = ["127.0.0.1"]\n'
+		} > "$TOML.new"
+	fi
+	if mv -f "$TOML.new" "$TOML"; then
+		say "frp: trusted_proxies = [\"127.0.0.1\"] added to web888d's configuration"
+	else
+		problem "frp: couldn't add trusted_proxies to $TOML: visitors count as one address in the limits"
+	fi
+}
+
+# The tunnel: frpc (frpc.service starts only when its configuration is
+# in /run) takes web888d's port to a port on the VPS, where a web server
+# faces the public. The token is kept on the configuration partition
+# once taken, and its line in web888.txt reads "(set)".
+frp_setting() {
+	rm -f "$FRP_TOML"
+	if [ -z "$frp_server" ]; then
+		say "frp: off (no frp_server)"
+		return
+	fi
+	host=$frp_server
+	port=7000
+	case $frp_server in
+	*:*)
+		host=${frp_server%:*}
+		port=${frp_server##*:}
+		;;
+	esac
+	case $host in
+	'' | -* | *[!A-Za-z0-9.-]*)
+		problem "frp_server \"$frp_server\": host[:port], e.g. vps.example.org:7000; no tunnel"
+		return
+		;;
+	esac
+	if ! port_ok "$port"; then
+		problem "frp_server \"$frp_server\": the port must be 1-65535; no tunnel"
+		return
+	fi
+	if ! port_ok "$frp_remote_port"; then
+		problem "frp_remote_port \"$frp_remote_port\": 1-65535, the port on the VPS; no tunnel"
+		return
+	fi
+	name=${frp_name:-web888}
+	case $name in
+	*[!A-Za-z0-9_-]*)
+		problem "frp_name \"$name\": letters, digits, - and _ only; no tunnel"
+		return
+		;;
+	esac
+	if [ -n "$frp_token" ] && [ "$frp_token" != "(set)" ]; then
+		if printf '%s' "$frp_token" | grep -q '["\\[:cntrl:]]'; then
+			problem "frp_token: no quotes, backslashes or control characters; not changed"
+		elif mkdir -p "$STATE" && (umask 077; printf '%s\n' "$frp_token" > "$FRP_TOKEN.new") &&
+			mv -f "$FRP_TOKEN.new" "$FRP_TOKEN"; then
+			if mark_taken frp_token; then
+				say "frp token: taken from web888.txt (the line now reads \"(set)\")"
+			else
+				say "frp token: taken from web888.txt"
+			fi
+		else
+			problem "frp_token: the configuration partition can't be written; not kept"
+		fi
+	fi
+	token=$(cat "$FRP_TOKEN" 2>/dev/null)
+	if [ -z "$token" ]; then
+		problem "frp_token: none (the VPS's frps token); no tunnel"
+		return
+	fi
+	mkdir -p "$(dirname "$FRP_TOML")"
+	(
+		umask 077
+		cat > "$FRP_TOML.new" <<TOMLEND
+# web888-setup, from web888.txt
+serverAddr = "$host"
+serverPort = $port
+loginFailExit = false
+auth.method = "token"
+auth.token = "$token"
+log.to = "console"
+
+[[proxies]]
+name = "$name"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = $WEB_PORT
+remotePort = $frp_remote_port
+TOMLEND
+	) && mv -f "$FRP_TOML.new" "$FRP_TOML" || {
+		problem "frp: couldn't write frpc's configuration; no tunnel"
+		return
+	}
+	say "frp: web888d to $host:$port as \"$name\", port $frp_remote_port on the VPS"
+	trust_loopback
+}
+
 # ----------------------------------------------------------------- main
 
 board_info() {
@@ -413,6 +575,7 @@ hostname_setting
 password_setting
 ssh_setting
 bitstream_setting
+frp_setting
 [ $problems = 0 ] && say "no problems"
 
 # the log, rewritten only when it says something new

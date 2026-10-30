@@ -30,3 +30,18 @@
 # channelizer (EXPERIMENTAL: the whole HF band in 30 kHz bins, receivers
 # limited by the CPU instead, up to 32 at once).
 #bitstream = standard
+
+# A tunnel to a public server (frp), so the receiver can be reached from
+# the Internet without opening a port on your router: the unit connects
+# out to the frps server of your VPS, which puts a web server (with
+# HTTPS) in front. See docs/frp.md. frp_server is host:port (default port
+# 7000); frp_token is the server's token (once the unit has taken it, the
+# line reads "frp_token = (set)"); frp_remote_port is the port frps opens
+# on the VPS for this unit, the one its web server forwards to; frp_name
+# names the tunnel there (default web888, unique per tunnel). The unit's
+# admin pages are then reachable from the Internet too: set a strong
+# admin_password.
+#frp_server = vps.example.org:7000
+#frp_token =
+#frp_remote_port = 18088
+#frp_name = web888
