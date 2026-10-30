@@ -42,8 +42,8 @@ emulator can't check.
    * `bitstream = channelizer`: the experimental channelizer bitstream
      (the whole HF band in 30 kHz bins; receivers limited by the CPU, up
      to 32, instead of the standard 12). `bitstream = standard` or no line
-     is the standard one. The `-channelizer` image is the same image with
-     this line already set.
+     is the standard one. (v0.2.0 and v0.3.0 also had a `-channelizer`
+     image: the same image with this line already set.)
    Remove the `#` in front of a setting to use it. Save and eject the card.
 
 ## 3. Boot it
