@@ -10,9 +10,9 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-# v0.4.0 (the channelizer's bins mode; the front end applied at start)
-SRCREV = "d276ff8fc6ff755740d35b6b85bd390a53069589"
-PV = "0.4.0"
+# v0.5.0 (audio over plain HTTP, load shedding, trusted addresses)
+SRCREV = "dc2704f2dbca844e44618710e14450ac14731abe"
+PV = "0.5.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
 
