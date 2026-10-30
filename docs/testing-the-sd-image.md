@@ -6,9 +6,10 @@ loader, kernel, FPGA bitstream and the `web888d` server, all from the card.
 Nothing on the unit itself is written, so putting your original card back
 brings the stock firmware back exactly as it was.
 
-**Status: first hardware test.** The image has only run in the emulator so
-far. The parts the emulator can't check are listed in §4; that is what
-this test is for.
+**Status: early hardware tests.** v0.2.0 has booted on one Web-888 from
+the card (2026-10-30): the boot into slot A, the network, the open bitstream
+and the right RF frequencies worked. More boards help: §4 lists what the
+emulator can't check.
 
 ## 1. What you need
 
@@ -73,7 +74,7 @@ The emulator can't check these. Each one matters:
 | | check | how |
 |---|---|---|
 | 1 | It boots and the web page comes up | §3 |
-| 2 | **Signals at the right frequency**: a broadcast station, a time signal (e.g. 10 MHz) or an FT8 band where you expect it | the waterfall; FT8 spots in the UI |
+| 2 | **Signals at the right frequency** (right on the first board): a broadcast station, a time signal (e.g. 10 MHz) or an FT8 band where you expect it | the waterfall; FT8 spots in the UI |
 | 3 | Signal levels as with the stock firmware on the same antenna | compare a known station |
 | 4 | The network: DHCP, or your static address; the same address after a power cycle | your router / `web888-setup.log` |
 | 5 | The MAC address is the one the stock firmware used | your router's client list, or `web888-setup.log` |

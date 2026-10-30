@@ -1,10 +1,9 @@
 # First test release: an SD card image (draft)
 
-Status: **built and emulator-tested**, 2026-10-30 (drafted 2026-10-29).
-The image builds (`kas/web888.yml`) and passes web888-ng-hw's
-`emu/tests/sd-image.sh` (boot ROM → SPL → U-Boot → slot A, the ADC clock,
-web888.txt, the slot marked good, static network, fallback to slot B).
-Not yet run on a board; the tester's guide is `testing-the-sd-image.md`.
+Status: **released** as v0.1.0 and v0.2.0 (2026-10-30; the plan below
+was drafted 2026-10-29 and is kept as written). v0.2.0 has booted on a
+tester's board from the card. Tester's guide: `testing-the-sd-image.md`;
+updates over the network from v0.3.0: `updates.md`.
 
 The goal is one SD card image that a Web-888 owner can write to a spare card,
 boot, and use. They set the network and the admin password by editing a text
