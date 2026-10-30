@@ -1,0 +1,21 @@
+[Unit]
+Description=frp client: web888d on a public VPS
+Documentation=file:///boot/web888.txt
+# /run/web888/frpc.toml is written by web888-setup from the frp_* settings
+# in web888.txt; without them there is no tunnel
+ConditionPathExists=/run/web888/frpc.toml
+After=network.target web888-setup.service web888d.service
+Wants=web888d.service
+
+[Service]
+ExecStart=/usr/bin/frpc -c /run/web888/frpc.toml
+Restart=always
+RestartSec=10
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+
+[Install]
+WantedBy=multi-user.target
