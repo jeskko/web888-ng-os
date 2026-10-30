@@ -47,16 +47,20 @@ problem() {
 
 # --------------------------------------------------------------- the FAT
 
-boot_rw=0
+# (put_file often ends a pipeline, a subshell: what is mounted how is
+# read from /proc/mounts, not kept in a variable)
+boot_is_rw() {
+	grep -q "^[^ ]* $BOOT vfat rw[, ]" /proc/mounts
+}
 boot_writable() {
-	[ $boot_rw = 1 ] && return 0
-	[ -n "${WEB888_BOOT:-}" ] && { boot_rw=1; return 0; }
-	mount -o remount,rw "$BOOT" && boot_rw=1
+	[ -n "${WEB888_BOOT:-}" ] && return 0
+	boot_is_rw || mount -o remount,rw "$BOOT"
 }
 boot_done() {
-	[ $boot_rw = 1 ] || return 0
 	sync
-	[ -n "${WEB888_BOOT:-}" ] || mount -o remount,ro "$BOOT"
+	[ -n "${WEB888_BOOT:-}" ] && return 0
+	boot_is_rw && mount -o remount,ro "$BOOT"
+	return 0
 }
 # put_file NAME: stdin to NAME on the FAT (a copy, then a rename)
 put_file() {
