@@ -10,9 +10,9 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-# v0.6.0 (JTTY decoding in the browser)
-SRCREV = "48e9914aac80e3f20c39838fe9b33193b6b3fb36"
-PV = "0.6.0"
+# v0.7.0 (phone layout, frequency labels and band ribbon, new starting view)
+SRCREV = "c5cf738537341f427381531b80727d366f9cc759"
+PV = "0.7.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
 

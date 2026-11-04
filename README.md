@@ -12,7 +12,9 @@ v0.2.0's SD card image has booted on a Web-888 from the card (a tester's
 unit, 2026-10-30), with the right RF frequencies; most testing is still
 in the emulator of web888-ng-hw. Releases so far: v0.1.0 (the first SD
 card image), v0.2.0 (a second image with the channelizer bitstream) and
-v0.3.0 (updates over the network, tunnels, web888d v0.6.0).
+v0.3.0 (updates over the network, tunnels, web888d v0.6.0) and v0.4.0
+(one image for both bitstreams; web888d v0.7.0 with the phone layout and
+frequency labels).
 
 What the image is:
 
