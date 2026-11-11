@@ -10,9 +10,9 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-# v0.8.0 (the KiwiSDR protocol: kiwirecorder, SuperSDR)
-SRCREV = "9a853efbbfcf93e36a18c5f8c591cc377e49bebd"
-PV = "0.8.0"
+# v0.9.0 (zoomed waterfalls from the FPGA's zoom engine)
+SRCREV = "38e9ed747f2c6dad8269887d809f12dc0295a919"
+PV = "0.9.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
 

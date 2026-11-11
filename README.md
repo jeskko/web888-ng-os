@@ -14,8 +14,9 @@ in the emulator of web888-ng-hw. Releases so far: v0.1.0 (the first SD
 card image), v0.2.0 (a second image with the channelizer bitstream),
 v0.3.0 (updates over the network, tunnels, web888d v0.6.0), v0.4.0 (one
 image for both bitstreams; web888d v0.7.0 with the phone layout and
-frequency labels) and v0.5.0 (web888d v0.8.0: KiwiSDR clients such as
-kiwirecorder and SuperSDR).
+frequency labels), v0.5.0 (web888d v0.8.0: KiwiSDR clients such as
+kiwirecorder and SuperSDR) and v0.6.0 (the channelizer with zoom spectra
+in the FPGA, web888d v0.9.0).
 
 What the image is:
 
@@ -34,7 +35,7 @@ What the image is:
     (1024).
   * Bitstreams come from web888-ng-hw releases (`web888-bitstream`,
     checked by SHA-256): HF and VHF from v0.2.0, the channelizer from
-    v0.3.0.
+    v0.4.0.
   * SSH is Dropbear on glibc, key only (`-s`): not affected by the musl
     OpenSSH `*`-password bypass (sshhole.com, 2026-11).
 * **Owner settings** go in `web888.txt` on the FAT (`web888-setup`):
