@@ -10,9 +10,9 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-# v0.7.0 (phone layout, frequency labels and band ribbon, new starting view)
-SRCREV = "c5cf738537341f427381531b80727d366f9cc759"
-PV = "0.7.0"
+# v0.8.0 (the KiwiSDR protocol: kiwirecorder, SuperSDR)
+SRCREV = "9a853efbbfcf93e36a18c5f8c591cc377e49bebd"
+PV = "0.8.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
 
