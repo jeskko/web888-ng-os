@@ -18,10 +18,13 @@ RUN mkdir -p /opt/runner && cd /opt/runner \
 # ncurses5/tinfo5 names, which Debian no longer ships, linked to the v6
 # libraries (LD_LIBRARY_PATH=/opt/vivado-compat). Vivado also needs
 # LD_PRELOAD=/lib/x86_64-linux-gnu/libudev.so.1: without it, its device
-# scan crashes in libudev (realloc(): invalid pointer).
+# scan crashes in libudev (realloc(): invalid pointer). Icarus Verilog and
+# numpy: web888-ng-hw's RTL simulations (`make -C fpga sim`), run before
+# the bitstreams.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libx11-6 libxext6 \
     libxrender1 libxtst6 libxi6 libfreetype6 fontconfig libtinfo6 libncursesw6 \
+    iverilog python3-numpy \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /opt/vivado-compat \
  && ln -s /usr/lib/x86_64-linux-gnu/libtinfo.so.6 /opt/vivado-compat/libtinfo.so.5 \
