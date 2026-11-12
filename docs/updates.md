@@ -16,6 +16,13 @@ once, and update over the network from then on.
 
 ## Updating
 
+From the admin page (an image whose web888d is newer than server
+v0.11.0): **Update** shows the running version and the root slots, and
+looks for a newer release (also by itself once a day). **Install**
+streams the release's bundle into the other slot, with its progress on
+the page; **Reboot now** starts the new system. web888d's `[update]`
+section sets where it looks, how often, and can turn it off.
+
 Over SSH (an `ssh_key` in `web888.txt`):
 
 ```sh
