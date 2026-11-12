@@ -1,0 +1,73 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Known CVEs in the newest release's image: Bootlin's sbom-cve-check (as
+# packaged by OpenEmbedded-Core) on the release's SPDX 3 SBOM, which
+# carries Yocto's own assessments (patched, not affected), against the
+# CVE List and NVD. What is still unpatched goes to GitHub's code
+# scanning (Security tab; alerts and notifications like CodeQL's), and
+# an alert closes when a later scan no longer finds it. Dependabot can't
+# see Yocto's packages; this does. On GitHub's runners only: the release
+# files and the public CVE databases, no build.
+name: cve
+
+on:
+  schedule:
+    - cron: "23 4 * * *" # daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cve
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write # upload the SARIF
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: sbom-cve-check (pinned by hash)
+        run: pip install --require-hashes --no-deps -r .github/cve-requirements.txt
+      - name: the newest release's SBOM
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh release list --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName')
+          gh release download "$tag" --pattern 'web888-ng-sd-*.spdx.json' --dir sbom
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+          ls -l sbom
+      # the CVE List and NVD clones (shallow; sbom-cve-check fetches what
+      # is new since)
+      - uses: actions/cache@v4
+        with:
+          path: cve-db
+          key: cve-db-${{ github.run_id }}
+          restore-keys: cve-db-
+      - name: scan
+        run: |
+          sbom-cve-check \
+            --databases-dir cve-db \
+            --sbom-path "sbom/web888-ng-sd-$TAG.spdx.json" \
+            --export-process-native target \
+            --export-filter-vulnerable \
+            --export-type yocto-cve-check-manifest --export-path cve.json \
+            --export-type summary --export-path cve.txt
+          python3 scripts/cve-sarif.py cve.json "$TAG" > cve.sarif
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cve-${{ env.TAG }}
+          path: |
+            cve.json
+            cve.txt
+            cve.sarif
+      - uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: cve.sarif
+          category: yocto-cve

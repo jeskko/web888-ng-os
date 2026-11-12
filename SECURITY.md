@@ -22,6 +22,8 @@ from the admin page's **Update** tab).
 Dependabot watches this repository's GitHub Actions, and CodeQL scans
 the workflows. The image's packages (the kernel, OpenSSL, curl,
 Dropbear, RAUC and the rest) come from Yocto's layers, pinned in
-`kas/web888.lock.yml`; Dependabot can't see them, so they are updated
-with Yocto's point releases. web888d's own dependencies are watched in
-web888-ng.
+`kas/web888.lock.yml`. Dependabot can't see those, so a daily job
+(`.github/workflows/cve.yml`) checks the newest release's SBOM with
+[sbom-cve-check](https://github.com/bootlin/sbom-cve-check) against the
+CVE List and NVD, and what is still unpatched shows as code scanning
+alerts. web888d's own dependencies are watched in web888-ng.
