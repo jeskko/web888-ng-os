@@ -18,8 +18,9 @@ frequency labels), v0.5.0 (web888d v0.8.0: KiwiSDR clients such as
 kiwirecorder and SuperSDR), v0.6.0 (the channelizer with zoom spectra
 in the FPGA, web888d v0.9.0), v0.7.0 (the channelizer by default;
 VHF reception, experimental: `band = vhf`; web888d v0.10.0 with NBFM)
-and v0.8.0 (web888d v0.11.0: FT8, FT4 and WSPR decoded in the browser,
-skimmers on less CPU).
+v0.8.0 (web888d v0.11.0: FT8, FT4 and WSPR decoded in the browser,
+skimmers on less CPU) and v0.9.0 (web888d v0.12.0: live DX spots, a map
+of the stations heard, OS updates from the admin page, metrics).
 
 What the image is:
 
@@ -48,8 +49,9 @@ What the image is:
     chisel): `docs/tunnels.md`.
   * `web888-setup.log` next to the file says what was applied.
 * **Updates (from v0.3.0):** signed RAUC bundles, installed over the
-  network into the other slot with `rauc install <URL>`. The unit falls
-  back to the old slot if the new one doesn't come up: `docs/updates.md`.
+  network into the other slot with `rauc install <URL>`, or from
+  web888d's admin page (**Update**, from v0.9.0). The unit falls back to
+  the old slot if the new one doesn't come up: `docs/updates.md`.
 * **For testers:** `docs/testing-the-sd-image.md`.
 
 Chain-loading from the stock firmware (no card change):

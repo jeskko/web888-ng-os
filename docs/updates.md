@@ -16,8 +16,7 @@ once, and update over the network from then on.
 
 ## Updating
 
-From the admin page (an image whose web888d is newer than server
-v0.11.0): **Update** shows the running version and the root slots, and
+From the admin page (from v0.9.0, web888d v0.12.0): **Update** shows the running version and the root slots, and
 looks for a newer release (also by itself once a day). **Install**
 streams the release's bundle into the other slot, with its progress on
 the page; **Reboot now** starts the new system. web888d's `[update]`

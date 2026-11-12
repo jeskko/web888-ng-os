@@ -12,7 +12,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-3.0-or-later;md5=1c76c4cc35
 
 SRC_URI = "https://github.com/jeskko/web888-ng/releases/download/v${PV}/web888d-ui-v${PV}.tar.gz;subdir=ui"
 # from the release's SHA256SUMS
-SRC_URI[sha256sum] = "bf6766bc6cca9dfe7a88093ddeecb2a19daf2805716424e950712abe9c52a94e"
+SRC_URI[sha256sum] = "ac6914b0c71dbe1040049a31b51af8c0861b97c951450d19b6b0f3811e72b0ac"
 
 S = "${UNPACKDIR}/ui"
 
@@ -24,11 +24,9 @@ do_compile[noexec] = "1"
 do_install() {
 	install -d ${D}${datadir}/web888d/ui
 	install -m 0644 ${S}/*.html ${S}/*.js ${S}/*.css ${S}/*.wasm ${D}${datadir}/web888d/ui/
-	# the map's world (UI after v0.11.0)
-	if [ -d ${S}/map ]; then
-		install -d ${D}${datadir}/web888d/ui/map
-		install -m 0644 ${S}/map/*.json ${D}${datadir}/web888d/ui/map/
-	fi
+	# the map's world
+	install -d ${D}${datadir}/web888d/ui/map
+	install -m 0644 ${S}/map/*.json ${D}${datadir}/web888d/ui/map/
 }
 
 FILES:${PN} = "${datadir}/web888d/ui"
