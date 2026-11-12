@@ -90,7 +90,7 @@ unquote() {
 }
 
 admin_password="" have_password=0
-network="" address="" gateway="" dns="" hostname="" ssh_key="" bitstream=""
+network="" address="" gateway="" dns="" hostname="" ssh_key="" bitstream="" band=""
 frp_server="" frp_token="" frp_name="" frp_remote_port="" cloudflared_token=""
 rathole_server="" rathole_token="" rathole_name="" rathole_server_key=""
 chisel_server="" chisel_auth="" chisel_fingerprint="" chisel_remote_port=""
@@ -121,6 +121,7 @@ read_settings() {
 		hostname) hostname=$val ;;
 		ssh_key) ssh_key=$val ;;
 		bitstream) bitstream=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
+		band) band=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
 		frp_server) frp_server=$val ;;
 		frp_token) frp_token=$val ;;
 		frp_name) frp_name=$val ;;
@@ -410,18 +411,29 @@ ssh_setting() {
 
 # standard: web888d's own choice (its configuration, by default the HF
 # bitstream); channelizer: the channelizer bitstream on the command line,
-# which web888d then runs in bins mode (over its configuration)
+# which web888d then runs in bins mode (over its configuration). The band:
+# hf (the default, web888d's configuration) or vhf (the VHF input,
+# 98.304..147.456 MHz: web888d sets the ADC clock and takes the VHF
+# bitstreams, the channelizer's websdr_pfb_vhf.bit)
 bitstream_setting() {
 	mkdir -p "$(dirname "$WEB888D_ENV")"
-	extra=""
+	extra="" pfb=websdr_pfb.bit
+	case $band in
+	'' | hf) ;;
+	vhf)
+		extra="--band vhf" pfb=websdr_pfb_vhf.bit
+		say "band: VHF, 98.304-147.456 MHz (experimental)"
+		;;
+	*) problem "band = \"$band\": hf or vhf; hf" ;;
+	esac
 	case $bitstream in
 	'' | standard) say "bitstream: standard" ;;
 	channelizer)
-		if [ -e "$BITDIR/websdr_pfb.bit" ]; then
-			extra="--bitstream $BITDIR/websdr_pfb.bit"
+		if [ -e "$BITDIR/$pfb" ]; then
+			extra="${extra:+$extra }--bitstream $BITDIR/$pfb"
 			say "bitstream: channelizer (experimental)"
 		else
-			problem "bitstream = channelizer: not in this image; the standard one"
+			problem "bitstream = channelizer: $pfb is not in this image; the standard one"
 		fi
 		;;
 	*) problem "bitstream = \"$bitstream\": standard or channelizer; the standard one" ;;

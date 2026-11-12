@@ -31,6 +31,11 @@
 # limited by the CPU instead, up to 32 at once).
 #bitstream = standard
 
+# The antenna input: hf (0-61 MHz; the default) or vhf (EXPERIMENTAL: the
+# VHF input, 98.304-147.456 MHz by undersampling: airband AM, 2 m FM).
+# With bitstream = channelizer, the channelizer built for VHF.
+#band = hf
+
 # Tunnels: the receiver reachable from the Internet without opening a
 # port on your router. The unit connects out; a server you run (frp,
 # rathole, chisel) or Cloudflare (cloudflared) faces the public, with
