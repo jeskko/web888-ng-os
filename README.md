@@ -16,8 +16,10 @@ v0.3.0 (updates over the network, tunnels, web888d v0.6.0), v0.4.0 (one
 image for both bitstreams; web888d v0.7.0 with the phone layout and
 frequency labels), v0.5.0 (web888d v0.8.0: KiwiSDR clients such as
 kiwirecorder and SuperSDR), v0.6.0 (the channelizer with zoom spectra
-in the FPGA, web888d v0.9.0) and v0.7.0 (the channelizer by default;
-VHF reception, experimental: `band = vhf`; web888d v0.10.0 with NBFM).
+in the FPGA, web888d v0.9.0), v0.7.0 (the channelizer by default;
+VHF reception, experimental: `band = vhf`; web888d v0.10.0 with NBFM)
+and v0.8.0 (web888d v0.11.0: FT8, FT4 and WSPR decoded in the browser,
+skimmers on less CPU).
 
 What the image is:
 
