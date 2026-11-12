@@ -24,6 +24,11 @@ do_compile[noexec] = "1"
 do_install() {
 	install -d ${D}${datadir}/web888d/ui
 	install -m 0644 ${S}/*.html ${S}/*.js ${S}/*.css ${S}/*.wasm ${D}${datadir}/web888d/ui/
+	# the map's world (UI after v0.11.0)
+	if [ -d ${S}/map ]; then
+		install -d ${D}${datadir}/web888d/ui/map
+		install -m 0644 ${S}/map/*.json ${D}${datadir}/web888d/ui/map/
+	fi
 }
 
 FILES:${PN} = "${datadir}/web888d/ui"
