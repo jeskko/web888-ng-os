@@ -26,10 +26,11 @@
 # no other way to log in; without a key, SSH is off.
 #ssh_key =
 
-# The FPGA bitstream: standard (12 receivers; the default) or
-# channelizer (EXPERIMENTAL: the whole HF band in 30 kHz bins, receivers
-# limited by the CPU instead, up to 32 at once).
-#bitstream = standard
+# The FPGA bitstream: channelizer (the default: the whole band in bins,
+# 32 receivers, zoomed waterfalls from the FPGA) or standard (12
+# receivers; the bitstream before v0.7.0, the one with the most hours on
+# boards: use it if the channelizer gives you trouble).
+#bitstream = channelizer
 
 # The antenna input: hf (0-61 MHz; the default) or vhf (EXPERIMENTAL: the
 # VHF input, 98.304-147.456 MHz by undersampling: airband AM, 2 m FM).

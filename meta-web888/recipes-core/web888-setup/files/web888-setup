@@ -409,9 +409,10 @@ ssh_setting() {
 
 # ------------------------------------------------------------ bitstream
 
-# standard: web888d's own choice (its configuration, by default the HF
-# bitstream); channelizer: the channelizer bitstream on the command line,
-# which web888d then runs in bins mode (over its configuration). The band:
+# channelizer (the default since v0.7.0): the channelizer bitstream on the
+# command line, which web888d then runs with its tuner (over its
+# configuration); standard: web888d's own choice (its configuration, by
+# default the HF bitstream with 12 receivers). The band:
 # hf (the default, web888d's configuration) or vhf (the VHF input,
 # 98.304..147.456 MHz: web888d sets the ADC clock and takes the VHF
 # bitstreams, the channelizer's websdr_pfb_vhf.bit)
@@ -427,11 +428,11 @@ bitstream_setting() {
 	*) problem "band = \"$band\": hf or vhf; hf" ;;
 	esac
 	case $bitstream in
-	'' | standard) say "bitstream: standard" ;;
-	channelizer)
+	standard) say "bitstream: standard" ;;
+	'' | channelizer)
 		if [ -e "$BITDIR/$pfb" ]; then
 			extra="${extra:+$extra }--bitstream $BITDIR/$pfb"
-			say "bitstream: channelizer (experimental)"
+			say "bitstream: channelizer"
 		else
 			problem "bitstream = channelizer: $pfb is not in this image; the standard one"
 		fi

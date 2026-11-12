@@ -39,11 +39,13 @@ emulator can't check.
      network has no DHCP server. The default is DHCP.
    * `ssh_key = ssh-ed25519 AAAA...`: your SSH public key, if you want a
      shell on the unit (`ssh root@<unit>`). Without a key, SSH is off.
-   * `bitstream = channelizer`: the experimental channelizer bitstream
-     (the whole HF band in 30 kHz bins; receivers limited by the CPU, up
-     to 32, instead of the standard 12). `bitstream = standard` or no line
-     is the standard one. (v0.2.0 and v0.3.0 also had a `-channelizer`
-     image: the same image with this line already set.)
+   * `bitstream = standard`: the standard bitstream (12 receivers),
+     instead of the channelizer, the default since v0.7.0 (the whole band
+     in bins, 32 receivers, zoomed waterfalls from the FPGA). Before
+     v0.7.0 the standard one was the default and `bitstream =
+     channelizer` chose the other. (v0.2.0 and v0.3.0 also had a
+     `-channelizer` image.)
+   * `band = vhf` (experimental): the VHF input, 98.304-147.456 MHz.
    Remove the `#` in front of a setting to use it. Save and eject the card.
 
 ## 3. Boot it

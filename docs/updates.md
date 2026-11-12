@@ -6,7 +6,10 @@ without taking the card out. Each release has an update bundle,
 the whole system: kernel, device tree, bitstreams, web888d and the rest.
 Every bitstream is in the system, and `bitstream =` in `web888.txt`
 chooses one, so an update keeps the unit's choice (v0.2.0 and v0.3.0's
-`-channelizer` image only had that line set).
+`-channelizer` image only had that line set). A unit without the line
+gets the release's default: the standard bitstream up to v0.6.0, the
+channelizer from v0.7.0 (`bitstream = standard` keeps the standard
+one).
 
 Units on v0.1.0 or v0.2.0 have no RAUC: write the v0.3.0 card image
 once, and update over the network from then on.

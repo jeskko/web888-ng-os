@@ -10,9 +10,9 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
            file://web888d.default \
            "
-# v0.9.0 (zoomed waterfalls from the FPGA's zoom engine)
-SRCREV = "38e9ed747f2c6dad8269887d809f12dc0295a919"
-PV = "0.9.0"
+# v0.10.0 (VHF, experimental; NBFM)
+SRCREV = "761d8c1e0183cfc3322e18fad8173ee6ca8f47ea"
+PV = "0.10.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
 
