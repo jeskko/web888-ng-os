@@ -13,12 +13,14 @@
 #            network, ssh keys, /config/web888d.toml (keep it private)
 #
 # Environment: MAC (eth0 address, e.g. the stock one, so the LAN sees the
-# same host), BOOTARGS_EXTRA (e.g. netconsole=@/eth0,6666@HOST/).
+# same host), BOOTARGS_EXTRA (e.g. netconsole=@/eth0,6666@HOST/), SLIM=1
+# (the root without the tunnel clients and /boot: an image with the
+# tunnels doesn't fit chainboot's 64 MiB initrd otherwise).
 #
 # Writes OUT/zImage, OUT/unit.dtb and OUT/initrd.cpio.gz; on the unit:
 #   chainboot.sh zImage unit.dtb initrd.cpio.gz [go]
 set -eu
-[ $# -ge 5 ] || { sed -n '3,22p' "$0" >&2; exit 2; }
+[ $# -ge 5 ] || { sed -n '3,21p' "$0" >&2; exit 2; }
 out=$1 kernel=$2 rootfs=$3 initramfs=$4 dtb=$5 overlay=${6:-}
 for t in fdtput cpio gzip; do
 	command -v $t > /dev/null || { echo "needs $t" >&2; exit 1; }
@@ -38,13 +40,31 @@ fi
 
 # the initramfs, then the root and the overlay as a second archive
 mkdir "$tmp/root"
-cp "$rootfs" "$tmp/root/rootfs.squashfs"
+if [ "${SLIM:-0}" = 1 ]; then
+	# without what a chain-loaded unit never uses: the tunnel clients
+	# (set up from web888.txt, which it doesn't have) and /boot (the
+	# kernel and U-Boot of a card install); owners and modes kept
+	for t in unsquashfs mksquashfs fakeroot; do
+		command -v $t > /dev/null || { echo "SLIM=1 needs $t" >&2; exit 1; }
+	done
+	fakeroot sh -c '
+		unsquashfs -q -d "$1/sq" "$2" > /dev/null &&
+		rm -f "$1"/sq/usr/bin/cloudflared "$1"/sq/usr/bin/frpc "$1"/sq/usr/bin/chisel "$1"/sq/usr/bin/rathole &&
+		rm -rf "$1"/sq/boot/* &&
+		mksquashfs "$1/sq" "$1/root/rootfs.squashfs" -comp xz -b 131072 -noappend -quiet -no-progress
+	' sh "$tmp" "$rootfs"
+	rm -rf "$tmp/sq"
+else
+	cp "$rootfs" "$tmp/root/rootfs.squashfs"
+fi
 if [ -n "$overlay" ]; then
 	cp -a "$overlay" "$tmp/root/overlay"
 fi
 cp "$initramfs" "$out/initrd.cpio.gz"
 (cd "$tmp/root" && find . | LC_ALL=C sort | cpio --quiet -o -H newc -R 0:0) | gzip -1 >> "$out/initrd.cpio.gz"
 size=$(stat -c %s "$out/initrd.cpio.gz")
+# chainboot.ko reads at most 64 MiB of initrd (INITRD_MAX)
+[ "$size" -le 67108864 ] || { echo "initrd $size bytes: over chainboot's 64 MiB (try SLIM=1)" >&2; exit 1; }
 
 cp "$dtb" "$out/unit.dtb"
 fdtput -t s "$out/unit.dtb" /chosen bootargs \
