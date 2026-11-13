@@ -49,6 +49,8 @@ git diff "$xtag" web888-merge | git apply --index
 	for f in $conflicts; do echo "  $f"; done
 	echo
 	echo "Made by os scripts/kernel-stable.sh."
+	echo
+	echo "Upstream-Status: Backport [stable $stag, merged into Xilinx's $xtag]"
 } | g commit -q -F -
 git diff --quiet web888-stable web888-merge
 

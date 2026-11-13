@@ -30,6 +30,8 @@ PV .= "+v2026.2"
 # it in meta-xilinx-core
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:${@os.path.dirname(bb.utils.which(d.getVar('BBPATH'), 'recipes-kernel/linux/linux-xlnx.inc'))}/linux-xlnx:"
 SRC_URI += "file://linux-6.18.63-stable.patch.xz"
+# the version check reads the Makefile: after the patch makes it 6.18.63
+addtask kernel_version_sanity_check after do_patch
 
 # Fixed in stable after 6.18.40 only in files where Xilinx's version is
 # kept (above), so not fixed here; none of them is in use on a Web-888.
