@@ -26,7 +26,9 @@ include recipes-kernel/linux/cve-exclusion-linux-xlnx.inc
 
 PV .= "+v2026.2"
 
-FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
+# ours, then linux-xlnx.inc's own files (linux-xlnx-kmeta, ...) next to
+# it in meta-xilinx-core
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:${@os.path.dirname(bb.utils.which(d.getVar('BBPATH'), 'recipes-kernel/linux/linux-xlnx.inc'))}/linux-xlnx:"
 SRC_URI += "file://linux-6.18.63-stable.patch.xz"
 
 # Fixed in stable after 6.18.40 only in files where Xilinx's version is
