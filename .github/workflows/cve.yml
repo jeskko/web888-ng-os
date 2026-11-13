@@ -90,7 +90,7 @@ jobs:
           python3 scripts/cve-sarif.py cve.json "$TAG" > cve.sarif
       - name: counts
         run: |
-          python3 - "$TAG" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          python3 - "$TAG" <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
           import json, sys
           sys.path.insert(0, "scripts")
           from importlib import import_module
