@@ -89,7 +89,8 @@ jobs:
             --export-filter-vulnerable \
             --export-type yocto-cve-check-manifest --export-path cve.json \
             --export-type summary --export-path cve.txt
-          python3 scripts/cve-sarif.py cve.json "$TAG" > cve.sarif
+          SARIF_CATEGORY=$([ "$RELEASE_SCAN" = true ] && echo yocto-cve || echo yocto-cve-build) \
+            python3 scripts/cve-sarif.py cve.json "$TAG" > cve.sarif
       - name: counts
         run: |
           python3 - "$TAG" <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
