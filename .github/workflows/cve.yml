@@ -1,18 +1,31 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Known CVEs in the newest release's image: Bootlin's sbom-cve-check (as
 # packaged by OpenEmbedded-Core) on the release's SPDX 3 SBOM, which
-# carries Yocto's own assessments (patched, not affected), against the
-# CVE List and NVD. What is still unpatched goes to GitHub's code
-# scanning (Security tab; alerts and notifications like CodeQL's), and
-# an alert closes when a later scan no longer finds it. Dependabot can't
-# see Yocto's packages; this does. On GitHub's runners only: the release
+# carries Yocto's own assessments (patched, not affected, the kernel's
+# compiled sources), against the CVE List and NVD. Dependabot can't see
+# Yocto's packages; this does. On GitHub's runners only: the release
 # files and the public CVE databases, no build.
+#
+# * Everything still unpatched goes to code scanning (Security tab); an
+#   alert closes when a later scan no longer finds it.
+# * Code scanning doesn't notify, so the ones of CVSS 7.0 or more also
+#   keep one issue (label cve-scan) assigned to the repository's owner:
+#   opened when there are some, a comment for each new one, closed when
+#   none are left.
+# * Run by hand with sbom = main, it scans the newest main build instead
+#   (artifacts only: no alerts, no issue).
 name: cve
 
 on:
   schedule:
     - cron: "23 4 * * *" # daily
   workflow_dispatch:
+    inputs:
+      sbom:
+        description: "release: the newest release; main: the newest main build (artifacts only)"
+        type: choice
+        options: [release, main]
+        default: release
 
 permissions:
   contents: read
@@ -27,7 +40,12 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
-      security-events: write # upload the SARIF
+      actions: read # a main build's artifact
+      security-events: write # the SARIF
+      issues: write # the notification issue
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_SCAN: ${{ inputs.sbom != 'main' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,12 +53,19 @@ jobs:
           python-version: "3.12"
       - name: sbom-cve-check (pinned by hash)
         run: pip install --require-hashes --no-deps -r .github/cve-requirements.txt
-      - name: the newest release's SBOM
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: the SBOM
         run: |
-          tag=$(gh release list --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName')
-          gh release download "$tag" --pattern 'web888-ng-sd-*.spdx.json' --dir sbom
+          mkdir sbom
+          if [ "$RELEASE_SCAN" = true ]; then
+            tag=$(gh release list --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName')
+            gh release download "$tag" --pattern 'web888-ng-sd-*.spdx.json' --dir sbom
+            mv sbom/*.spdx.json sbom/image.spdx.json
+          else
+            id=$(gh run list --workflow build --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+            gh run download "$id" --name web888-image --dir img
+            mv img/web888-image-web888.rootfs.spdx.json sbom/image.spdx.json
+            tag="main@$(gh run view "$id" --json headSha --jq '.headSha[:7]')"
+          fi
           echo "TAG=$tag" >> "$GITHUB_ENV"
           ls -l sbom
       # the CVE List and NVD clones (shallow; sbom-cve-check fetches what
@@ -54,20 +79,57 @@ jobs:
         run: |
           sbom-cve-check \
             --databases-dir cve-db \
-            --sbom-path "sbom/web888-ng-sd-$TAG.spdx.json" \
+            --sbom-path sbom/image.spdx.json \
             --export-process-native target \
             --export-filter-vulnerable \
             --export-type yocto-cve-check-manifest --export-path cve.json \
             --export-type summary --export-path cve.txt
           python3 scripts/cve-sarif.py cve.json "$TAG" > cve.sarif
+      - name: artifact name
+        run: echo "ART=cve-${TAG//[@\/]/-}" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
-          name: cve-${{ env.TAG }}
+          name: ${{ env.ART }}
           path: |
             cve.json
             cve.txt
             cve.sarif
-      - uses: github/codeql-action/upload-sarif@v4
+      - if: env.RELEASE_SCAN == 'true'
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: cve.sarif
           category: yocto-cve
+      # what the last release scan reported, to tell what is new
+      - if: env.RELEASE_SCAN == 'true'
+        uses: actions/cache@v4
+        with:
+          path: cve-state
+          key: cve-state-${{ github.run_id }}
+          restore-keys: cve-state-
+      - name: the issue
+        if: env.RELEASE_SCAN == 'true'
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          n=$(python3 scripts/cve-issue.py cve.json "$TAG" cve-state/ids.txt out)
+          mkdir -p cve-state
+          cp out/ids.txt cve-state/ids.txt
+          issue=$(gh issue list --label cve-scan --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ ! -s out/body.md ]; then
+            if [ -n "$issue" ]; then
+              gh issue close "$issue" --comment "No unpatched CVEs of CVSS 7.0 or more in $TAG's image any more ($RUN_URL)."
+            fi
+            exit 0
+          fi
+          if [ -z "$issue" ]; then
+            gh label create cve-scan --color B60205 --description "The daily CVE scan of the image" 2>/dev/null || true
+            gh issue create --title "Unpatched CVEs of CVSS 7.0 or more in the image" \
+              --label cve-scan --assignee "$OWNER" --body-file out/body.md
+          else
+            gh issue edit "$issue" --body-file out/body.md
+            if [ -s out/new.md ]; then
+              gh issue comment "$issue" --body-file out/new.md
+            fi
+          fi
+          echo "$n reported"
