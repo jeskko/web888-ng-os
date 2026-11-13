@@ -19,8 +19,9 @@ kiwirecorder and SuperSDR), v0.6.0 (the channelizer with zoom spectra
 in the FPGA, web888d v0.9.0), v0.7.0 (the channelizer by default;
 VHF reception, experimental: `band = vhf`; web888d v0.10.0 with NBFM)
 v0.8.0 (web888d v0.11.0: FT8, FT4 and WSPR decoded in the browser,
-skimmers on less CPU) and v0.9.0 (web888d v0.12.0: live DX spots, a map
-of the stations heard, OS updates from the admin page, metrics).
+skimmers on less CPU), v0.9.0 (web888d v0.12.0: live DX spots, a map
+of the stations heard, OS updates from the admin page, metrics) and
+v0.9.1 (security: kernel 6.18.63, newer packages, unused ones removed).
 
 What the image is:
 
