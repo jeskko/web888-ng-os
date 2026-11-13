@@ -21,7 +21,8 @@ VHF reception, experimental: `band = vhf`; web888d v0.10.0 with NBFM)
 v0.8.0 (web888d v0.11.0: FT8, FT4 and WSPR decoded in the browser,
 skimmers on less CPU), v0.9.0 (web888d v0.12.0: live DX spots, a map
 of the stations heard, OS updates from the admin page, metrics) and
-v0.9.1 (security: kernel 6.18.63, newer packages, unused ones removed).
+v0.9.1 (security: kernel 6.18.63, newer packages, unused ones removed)
+and v0.9.2 (no unassessed CVEs of CVSS 7.0 or more).
 
 What the image is:
 
