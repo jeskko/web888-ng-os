@@ -42,3 +42,41 @@ CVE_STATUS[CVE-2026-90030] = "not-applicable-config: USB dwc3 (drivers/usb/dwc3)
 CVE_STATUS[CVE-2026-90214] = "not-applicable-config: Xilinx audio formatter (sound/soc/xilinx), not built"
 CVE_STATUS[CVE-2026-98767] = "not-applicable-config: USB dwc3 (drivers/usb/dwc3), not built (Zynq-7000 has ChipIdea USB)"
 CVE_STATUS[CVE-2026-99028] = "not-applicable-config: AXI Ethernet (drivers/net/ethernet/xilinx/xilinx_axienet*), built but no such device: the FPGA design has none, the board's Ethernet is the PS GEM"
+
+# Not fixed in 6.18.63 yet; the mainline fix applies as it is
+SRC_URI += "file://CVE-2026-72397.patch"
+
+# Open in 6.18.63 (the daily scan, CVSS 7.0 or more), checked against this
+# kernel's configuration (/proc/config.gz on a unit) and the Makefiles
+# that build each fix's files (2026-11-13). Not built here:
+CVE_STATUS_GROUPS += "CVE_STATUS_WEB888_K_BPF CVE_STATUS_WEB888_K_NETFS CVE_STATUS_WEB888_K_SMB \
+    CVE_STATUS_WEB888_K_OCFS2 CVE_STATUS_WEB888_K_AMD CVE_STATUS_WEB888_K_FB"
+CVE_STATUS_WEB888_K_BPF = "CVE-2026-74354 CVE-2026-98376 CVE-2026-98869"
+CVE_STATUS_WEB888_K_BPF[status] = "not-applicable-config: the bpf() syscall, its maps and verifier are not built (CONFIG_BPF_SYSCALL off)"
+CVE_STATUS_WEB888_K_NETFS = "CVE-2026-64160 CVE-2026-98118"
+CVE_STATUS_WEB888_K_NETFS[status] = "not-applicable-config: netfs and the network file systems using it are not built (CONFIG_NETFS_SUPPORT, 9P_FS, AFS_FS, CIFS off)"
+CVE_STATUS_WEB888_K_SMB = "CVE-2026-89630 CVE-2026-89632 CVE-2026-98115"
+CVE_STATUS_WEB888_K_SMB[status] = "not-applicable-config: the SMB client and server are not built (CONFIG_CIFS, CONFIG_SMB_SERVER off)"
+CVE_STATUS_WEB888_K_OCFS2 = "CVE-2026-90320 CVE-2026-90321"
+CVE_STATUS_WEB888_K_OCFS2[status] = "not-applicable-config: OCFS2 is not built (CONFIG_OCFS2_FS off)"
+CVE_STATUS_WEB888_K_AMD = "CVE-2026-68103 CVE-2026-68447 CVE-2026-74419 CVE-2026-98436 CVE-2026-89805"
+CVE_STATUS_WEB888_K_AMD[status] = "not-applicable-config: GPU and accelerator drivers are not built (CONFIG_DRM_AMDGPU, DRM_ACCEL_AMDXDNA, DRM_GPUSVM off)"
+CVE_STATUS_WEB888_K_FB = "CVE-2026-80579 CVE-2026-80580"
+CVE_STATUS_WEB888_K_FB[status] = "not-applicable-config: the framebuffer core is not built (CONFIG_FB_CORE off)"
+CVE_STATUS[CVE-2025-71074] = "not-applicable-config: USB gadget FunctionFS is not built (CONFIG_USB_F_FS off)"
+CVE_STATUS[CVE-2026-100072] = "not-applicable-config: ACPI is not built (an ARM device-tree system)"
+CVE_STATUS[CVE-2026-43042] = "not-applicable-config: MPLS is not built (CONFIG_MPLS off)"
+CVE_STATUS[CVE-2026-53024] = "not-applicable-config: greybus (staging) is not built"
+CVE_STATUS[CVE-2026-63977] = "not-applicable-config: the DPLL subsystem and zl3073x are not built (CONFIG_DPLL off)"
+CVE_STATUS[CVE-2026-74752] = "not-applicable-config: SCTP is not built (CONFIG_IP_SCTP off)"
+CVE_STATUS[CVE-2026-89610] = "not-applicable-config: the old ntfs driver (fs/ntfs) is not in this tree; ntfs3 is not built either"
+CVE_STATUS[CVE-2026-89611] = "not-applicable-config: the old ntfs driver (fs/ntfs) is not in this tree; ntfs3 is not built either"
+CVE_STATUS[CVE-2026-90237] = "not-applicable-config: netfilter is not built (CONFIG_NETFILTER off)"
+CVE_STATUS[CVE-2026-98364] = "not-applicable-config: IPsec (XFRM) is not built (CONFIG_XFRM off)"
+CVE_STATUS[CVE-2022-1247] = "not-applicable-config: the ROSE protocol is not built (CONFIG_ROSE off)"
+CVE_STATUS[CVE-2023-3397] = "not-applicable-config: JFS is not built (CONFIG_JFS_FS off)"
+CVE_STATUS[CVE-2019-14899] = "not-applicable-config: needs a VPN tunnel interface to probe; TUN and WireGuard are not built"
+# Built, but out of an attacker's reach on this system:
+CVE_STATUS[CVE-2021-3864] = "mitigated: needs core dumps of a SUID program's descendants; fs.suid_dumpable is 0 and systemd sets kernel.core_pattern to |/bin/false (no coredump handler), and root is the only account with a login"
+CVE_STATUS[CVE-2026-53091] = "not-reachable: a malformed GSO packet has to come from TUN/TAP or virtio (not built) or a raw packet socket (CAP_NET_RAW: root and systemd-networkd only); forwarding is off. The mainline fix needs a transmit-path refactor 6.18 doesn't have"
+CVE_STATUS[CVE-2026-89584] = "not-reachable: needs direct I/O with crafted vectors against a bio-based block device; here only dm-verity during a RAUC install, whose nodes are root's, and root is the only account with a login"
