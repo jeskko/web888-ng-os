@@ -8,12 +8,14 @@
 #
 # * Everything still unpatched goes to code scanning (Security tab); an
 #   alert closes when a later scan no longer finds it.
-# * Code scanning doesn't notify, so the ones of CVSS 7.0 or more also
-#   keep one issue (label cve-scan) assigned to the repository's owner:
-#   opened when there are some, a comment for each new one, closed when
-#   none are left.
+# * Code scanning doesn't notify, so one issue (label cve-scan, assigned
+#   to the repository's owner) says how many of CVSS 7.0 or more are
+#   unhandled, with no details: opened when there are some, a comment
+#   when new ones turn up, closed when none are left.
+# * The details stay in code scanning (maintainers only): no artifacts
+#   (anyone can download a public repo's) and only counts in the logs.
 # * Run by hand with sbom = main, it scans the newest main build instead
-#   (artifacts only: no alerts, no issue).
+#   and only reports the counts (the job summary): no alerts, no issue.
 name: cve
 
 on:
@@ -85,15 +87,25 @@ jobs:
             --export-type yocto-cve-check-manifest --export-path cve.json \
             --export-type summary --export-path cve.txt
           python3 scripts/cve-sarif.py cve.json "$TAG" > cve.sarif
-      - name: artifact name
-        run: echo "ART=cve-${TAG//[@\/]/-}" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ART }}
-          path: |
-            cve.json
-            cve.txt
-            cve.sarif
+      - name: counts
+        run: |
+          python3 - "$TAG" >> "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json, sys
+          sys.path.insert(0, "scripts")
+          from importlib import import_module
+          score = import_module("cve-issue").score
+          k = ("linux-xlnx", "linux-yocto")
+          n = {"all": 0, "high": 0, "kernel": 0, "kernel_high": 0}
+          for p in json.load(open("cve.json")).get("package", []):
+              for i in p.get("issue", []):
+                  if i.get("status") != "Unpatched":
+                      continue
+                  hi = score(i) >= 7.0
+                  kern = p.get("name") in k
+                  n["all"] += 1; n["high"] += hi; n["kernel"] += kern; n["kernel_high"] += kern and hi
+          print(f"Unhandled CVEs in {sys.argv[1]}'s image: {n['all']} "
+                f"({n['high']} of CVSS 7.0 or more); in the kernel {n['kernel']} ({n['kernel_high']}).")
+          PY
       - if: env.RELEASE_SCAN == 'true'
         uses: github/codeql-action/upload-sarif@v4
         with:
@@ -118,13 +130,13 @@ jobs:
           issue=$(gh issue list --label cve-scan --state open --limit 1 --json number --jq '.[0].number // empty')
           if [ ! -s out/body.md ]; then
             if [ -n "$issue" ]; then
-              gh issue close "$issue" --comment "No unpatched CVEs of CVSS 7.0 or more in $TAG's image any more ($RUN_URL)."
+              gh issue close "$issue" --comment "No unhandled CVEs of CVSS 7.0 or more in $TAG's image any more ($RUN_URL)."
             fi
             exit 0
           fi
           if [ -z "$issue" ]; then
             gh label create cve-scan --color B60205 --description "The daily CVE scan of the image" 2>/dev/null || true
-            gh issue create --title "Unpatched CVEs of CVSS 7.0 or more in the image" \
+            gh issue create --title "Unhandled CVEs of CVSS 7.0 or more in the image" \
               --label cve-scan --assignee "$OWNER" --body-file out/body.md
           else
             gh issue edit "$issue" --body-file out/body.md
