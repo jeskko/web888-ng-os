@@ -29,3 +29,9 @@ do_configure:prepend() {
 	cp ${UNPACKDIR}/ps7_init_gpl.c ${UNPACKDIR}/ps7_init_gpl.h ${S}/board/xilinx/zynq/zynq-web888/
 	cp ${UNPACKDIR}/web888.env ${S}/board/xilinx/zynq/
 }
+
+# Flaws in U-Boot's network stack, which web888.cfg leaves out
+# (CONFIG_NO_NET: the boot is from the SD card only)
+CVE_STATUS_GROUPS += "CVE_STATUS_WEB888_UBOOT_NET"
+CVE_STATUS_WEB888_UBOOT_NET = "CVE-2026-29008 CVE-2026-71971 CVE-2026-74220 CVE-2026-74221 CVE-2026-74222 CVE-2026-74225"
+CVE_STATUS_WEB888_UBOOT_NET[status] = "not-applicable-config: U-Boot is built without networking (CONFIG_NO_NET)"
