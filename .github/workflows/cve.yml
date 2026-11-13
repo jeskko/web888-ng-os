@@ -15,8 +15,10 @@
 # * The details stay in code scanning (maintainers only): no artifacts
 #   (anyone can download a public repo's) and only counts in the logs.
 # * Run by hand with sbom = main, it scans the newest build of the branch
-#   it runs on instead (main, or a branch under test)
-#   and only reports the counts (the job summary): no alerts, no issue.
+#   it runs on instead (main, or a branch under test): the counts in the
+#   job summary, no issue; on a branch other than main also its alerts,
+#   category yocto-cve-build, which belong to that branch (Security ->
+#   Code scanning, branch filter).
 name: cve
 
 on:
@@ -25,7 +27,7 @@ on:
   workflow_dispatch:
     inputs:
       sbom:
-        description: "release: the newest release; main: the newest build of the branch chosen (counts only)"
+        description: "release: the newest release; main: the newest build of the branch chosen (counts; alerts on a branch)"
         type: choice
         options: [release, main]
         default: release
@@ -112,6 +114,11 @@ jobs:
         with:
           sarif_file: cve.sarif
           category: yocto-cve
+      - if: env.RELEASE_SCAN != 'true' && github.ref_name != 'main'
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: cve.sarif
+          category: yocto-cve-build
       # what the last release scan reported, to tell what is new
       - if: env.RELEASE_SCAN == 'true'
         uses: actions/cache@v4
