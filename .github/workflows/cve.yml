@@ -14,7 +14,8 @@
 #   when new ones turn up, closed when none are left.
 # * The details stay in code scanning (maintainers only): no artifacts
 #   (anyone can download a public repo's) and only counts in the logs.
-# * Run by hand with sbom = main, it scans the newest main build instead
+# * Run by hand with sbom = main, it scans the newest build of the branch
+#   it runs on instead (main, or a branch under test)
 #   and only reports the counts (the job summary): no alerts, no issue.
 name: cve
 
@@ -24,7 +25,7 @@ on:
   workflow_dispatch:
     inputs:
       sbom:
-        description: "release: the newest release; main: the newest main build (artifacts only)"
+        description: "release: the newest release; main: the newest build of the branch chosen (counts only)"
         type: choice
         options: [release, main]
         default: release
@@ -63,7 +64,7 @@ jobs:
             gh release download "$tag" --pattern 'web888-ng-sd-*.spdx.json' --dir sbom
             mv sbom/*.spdx.json sbom/image.spdx.json
           else
-            id=$(gh run list --workflow build --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+            id=$(gh run list --workflow build --branch "$GITHUB_REF_NAME" --status success --limit 1 --json databaseId --jq '.[0].databaseId')
             gh run download "$id" --name web888-image --dir img
             mv img/web888-image-web888.rootfs.spdx.json sbom/image.spdx.json
             tag="main@$(gh run view "$id" --json headSha --jq '.headSha[:7]')"
