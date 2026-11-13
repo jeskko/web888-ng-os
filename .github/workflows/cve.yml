@@ -67,7 +67,7 @@ jobs:
             id=$(gh run list --workflow build --branch "$GITHUB_REF_NAME" --status success --limit 1 --json databaseId --jq '.[0].databaseId')
             gh run download "$id" --name web888-image --dir img
             mv img/web888-image-web888.rootfs.spdx.json sbom/image.spdx.json
-            tag="main@$(gh run view "$id" --json headSha --jq '.headSha[:7]')"
+            tag="$GITHUB_REF_NAME@$(gh run view "$id" --json headSha --jq '.headSha[:7]')"
           fi
           echo "TAG=$tag" >> "$GITHUB_ENV"
           ls -l sbom
