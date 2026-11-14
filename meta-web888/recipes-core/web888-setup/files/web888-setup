@@ -32,6 +32,11 @@ PWTXT=$BOOT/web888-password.txt
 TOML=$CONFIG/web888d.toml
 BITDIR=${WEB888_BITDIR:-/usr/share/web888}
 WEB888D_ENV=$RUN/web888/web888d.env
+SAFE=$RUN/web888/safe
+# safe mode's extra address (docs/safe-mode.md)
+SAFE_ADDRESS=169.254.88.8/16
+FW_PRINTENV=${WEB888_FW_PRINTENV:-fw_printenv}
+CMDLINE=${WEB888_CMDLINE:-/proc/cmdline}
 STATE=$CONFIG/web888-setup
 NETDIR=$RUN/systemd/network
 SSHDIR=$RUN/web888/ssh
@@ -90,7 +95,7 @@ unquote() {
 }
 
 admin_password="" have_password=0
-network="" address="" gateway="" dns="" hostname="" ssh_key="" bitstream="" band=""
+network="" address="" gateway="" dns="" hostname="" ssh_key="" bitstream="" band="" safe=""
 frp_server="" frp_token="" frp_name="" frp_remote_port="" cloudflared_token=""
 rathole_server="" rathole_token="" rathole_name="" rathole_server_key=""
 chisel_server="" chisel_auth="" chisel_fingerprint="" chisel_remote_port=""
@@ -122,6 +127,7 @@ read_settings() {
 		ssh_key) ssh_key=$val ;;
 		bitstream) bitstream=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
 		band) band=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
+		safe) safe=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
 		frp_server) frp_server=$val ;;
 		frp_token) frp_token=$val ;;
 		frp_name) frp_name=$val ;;
@@ -277,6 +283,9 @@ network_setting() {
 			done
 			echo "LinkLocalAddressing=ipv6"
 		fi
+		# safe mode: one more address that is always the same, whatever
+		# the settings above or the DHCP server do
+		[ -n "$safe_why" ] && echo "Address=$SAFE_ADDRESS"
 		echo "IPv6AcceptRA=yes"
 		if [ $network = dhcp ]; then
 			echo
@@ -407,6 +416,44 @@ ssh_setting() {
 	say "SSH: on for root with the key from web888.txt"
 }
 
+# ------------------------------------------------------------ safe mode
+
+# Safe mode (docs/safe-mode.md): network, SSH, the tunnels and web888d's
+# pages (settings, logs, OS updates), without the radio: no driver use,
+# no bitstream. For a unit whose normal start keeps failing. When:
+#   * the boot loader says so (web888.safe=1: no root slot had tries
+#     left; it also keeps the SDR driver from loading);
+#   * this is the last try of the last slot (both have none left now):
+#     the same, one boot earlier, and with a boot loader from before
+#     safe mode (an update doesn't replace the boot loader);
+#   * safe = yes in web888.txt.
+# $SAFE holds the reason; web888d.service and web888-boot-ok stay off
+# while it exists (the slots keep their tries: the unit stays in safe
+# mode over reboots until "web888-safe leave" or an update).
+safe_why=""
+safe_setting() {
+	rm -f "$SAFE"
+	if grep -q 'web888\.safe=1' "$CMDLINE" 2>/dev/null; then
+		safe_why="no root slot has tries left"
+	fi
+	case $safe in
+	'' | no | off | false | 0) ;;
+	yes | on | true | 1) [ -n "$safe_why" ] || safe_why="safe = $safe in web888.txt" ;;
+	*) problem "safe = \"$safe\": yes or no; no" ;;
+	esac
+	if [ -z "$safe_why" ] && [ -n "$slot" ]; then
+		a=$($FW_PRINTENV -n BOOT_A_LEFT 2>/dev/null)
+		b=$($FW_PRINTENV -n BOOT_B_LEFT 2>/dev/null)
+		if [ "$a" = 0 ] && [ "$b" = 0 ]; then
+			safe_why="the last try of the last root slot"
+		fi
+	fi
+	[ -n "$safe_why" ] || return 0
+	mkdir -p "$(dirname "$SAFE")"
+	echo "$safe_why" > "$SAFE"
+	say "SAFE MODE: $safe_why. The radio is off; the admin page and SSH work, also at ${SAFE_ADDRESS%/*}. To leave: the admin page, or \"web888-safe leave\" over SSH."
+}
+
 # ------------------------------------------------------------ bitstream
 
 # channelizer (the default since v0.7.0): the channelizer bitstream on the
@@ -418,6 +465,11 @@ ssh_setting() {
 # bitstreams, the channelizer's websdr_pfb_vhf.bit)
 bitstream_setting() {
 	mkdir -p "$(dirname "$WEB888D_ENV")"
+	if [ -n "$safe_why" ]; then
+		# web888d's pages without the radio (web888d-safe.service)
+		echo "WEB888D_EXTRA=\"--safe\"" > "$WEB888D_ENV"
+		return
+	fi
 	extra="" pfb=websdr_pfb.bit
 	case $band in
 	'' | hf) ;;
@@ -747,6 +799,7 @@ if [ -e "$TXT" ]; then
 else
 	say "no web888.txt on the card: the defaults"
 fi
+safe_setting
 mac_setting
 network_setting
 hostname_setting

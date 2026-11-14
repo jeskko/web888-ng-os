@@ -40,6 +40,8 @@ reboot
   minute, the slot is marked good (`web888-boot-ok`). If the new system
   doesn't come up, the unit goes back to the old slot after three boots.
   The watchdog resets a hang.
+  With no tries left in either slot the unit starts in safe mode
+  ([safe-mode.md](safe-mode.md)): reachable, without the radio.
 * **Settings stay:** `web888.txt`, the admin password, the configuration
   partition and the SSH host keys are untouched by an update.
 

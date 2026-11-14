@@ -14,6 +14,7 @@ SRC_URI = " \
     file://web888-setup.service \
     file://web888-boot-ok \
     file://web888-boot-ok.service \
+    file://web888-safe \
     file://web888.txt \
     file://fw_env.config \
     file://dropbear-web888.conf \
@@ -29,6 +30,7 @@ SYSTEMD_SERVICE:${PN} = "web888-setup.service web888-boot-ok.service"
 do_install() {
 	install -D -m 0755 ${S}/web888-setup ${D}${sbindir}/web888-setup
 	install -D -m 0755 ${S}/web888-boot-ok ${D}${sbindir}/web888-boot-ok
+	install -D -m 0755 ${S}/web888-safe ${D}${sbindir}/web888-safe
 	install -D -m 0644 ${S}/web888-setup.service ${D}${systemd_system_unitdir}/web888-setup.service
 	install -D -m 0644 ${S}/web888-boot-ok.service ${D}${systemd_system_unitdir}/web888-boot-ok.service
 	install -D -m 0644 ${S}/fw_env.config ${D}${sysconfdir}/fw_env.config

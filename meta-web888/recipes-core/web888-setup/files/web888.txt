@@ -37,6 +37,12 @@
 # With bitstream = channelizer, the channelizer built for VHF.
 #band = hf
 
+# Safe mode: yes starts the unit without its radio: network, SSH, the
+# tunnels and the admin page (settings, logs, updates) only, and one more
+# address that is always the same, 169.254.88.8. The unit also does this
+# by itself when its system fails to start several times in a row.
+#safe = yes
+
 # Tunnels: the receiver reachable from the Internet without opening a
 # port on your router. The unit connects out; a server you run (frp,
 # rathole, chisel) or Cloudflare (cloudflared) faces the public, with

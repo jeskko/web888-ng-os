@@ -8,10 +8,11 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=75d892af193fd5a298f724c4377d8f62"
 
 SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.service \
+           file://web888d-safe.service \
            file://web888d.default \
            "
 # v0.12.0 (live DX spots, the map, OS updates from the admin page, metrics)
-SRCREV = "944179dab15c981b6b17e274ab98b81f6004b47a"
+SRCREV = "3bfada1f16867a04e69bba4789f30111afec31d1"
 PV = "0.12.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
@@ -26,6 +27,7 @@ CARGO_BUILD_FLAGS += "--package web888d"
 do_install:append() {
 	install -d ${D}${systemd_system_unitdir} ${D}${sysconfdir}/default
 	install -m 0644 ${UNPACKDIR}/web888d.service ${D}${systemd_system_unitdir}/
+	install -m 0644 ${UNPACKDIR}/web888d-safe.service ${D}${systemd_system_unitdir}/
 	install -m 0644 ${UNPACKDIR}/web888d.default ${D}${sysconfdir}/default/web888d
 	# the default config path leads to the config partition, so plain
 	# `web888d passwd` (and --print-config) use the file the service does
@@ -33,5 +35,5 @@ do_install:append() {
 	ln -s /config/web888d.toml ${D}${sysconfdir}/web888d/web888d.toml
 }
 
-SYSTEMD_SERVICE:${PN} = "web888d.service"
+SYSTEMD_SERVICE:${PN} = "web888d.service web888d-safe.service"
 RDEPENDS:${PN} += "web888-sdr kernel-module-web888-sdr web888-bitstream web888d-ui"

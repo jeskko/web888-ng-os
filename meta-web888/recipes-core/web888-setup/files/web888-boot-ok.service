@@ -1,6 +1,9 @@
 [Unit]
 Description=Mark this root slot good once web888d runs
 ConditionKernelCommandLine=rauc.slot
+# not in safe mode: the slots keep their tries as they are, so the unit
+# stays in safe mode until someone ends it (web888-safe leave) or updates
+ConditionPathExists=!/run/web888/safe
 After=web888d.service
 
 [Service]

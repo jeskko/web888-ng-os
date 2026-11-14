@@ -1,0 +1,36 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# web888-safe: safe mode from the command line (docs/safe-mode.md).
+#   web888-safe            says whether the unit is in safe mode, and why
+#   web888-safe leave      both root slots get their tries back and the
+#                          unit reboots into the normal system
+#   web888-safe leave --no-reboot
+SAFE=/run/web888/safe
+case ${1:-status} in
+status)
+	if [ -e "$SAFE" ]; then
+		echo "safe mode: $(cat "$SAFE")"
+		echo "to leave: web888-safe leave"
+	else
+		echo "not in safe mode"
+	fi
+	;;
+leave)
+	if grep -qi '^[[:space:]]*safe[[:space:]]*=[[:space:]]*\(yes\|on\|true\|1\)' /boot/web888.txt 2>/dev/null; then
+		echo "web888-safe: web888.txt on the card says safe = yes: remove that line first" >&2
+		exit 1
+	fi
+	fw_setenv BOOT_A_LEFT 3 && fw_setenv BOOT_B_LEFT 3 && fw_setenv BOOT_SAFE || {
+		echo "web888-safe: can't write the boot loader's environment" >&2
+		exit 1
+	}
+	echo "web888-safe: both root slots have 3 tries again"
+	[ "${2:-}" = --no-reboot ] && exit 0
+	echo "web888-safe: rebooting"
+	systemctl reboot
+	;;
+*)
+	sed -n '3,7p' "$0" >&2
+	exit 2
+	;;
+esac

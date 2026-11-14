@@ -7,6 +7,9 @@ After=dev-zynqsdr.device local-fs.target
 # configuration and state (nofail mount: without it, web888d runs on defaults)
 Wants=config.mount
 After=config.mount
+# not in safe mode (web888-setup, docs/safe-mode.md): web888d-safe.service
+# runs then
+ConditionPathExists=!/run/web888/safe
 
 [Service]
 EnvironmentFile=/etc/default/web888d

@@ -1,0 +1,19 @@
+[Unit]
+Description=web888-ng SDR server, safe mode (no radio)
+Documentation=https://github.com/jeskko/web888-ng-os/blob/main/docs/safe-mode.md
+# only in safe mode (web888-setup writes the reason there): the admin
+# page, settings, logs and OS updates, with the SDR hardware left alone
+ConditionPathExists=/run/web888/safe
+After=local-fs.target web888-setup.service
+Wants=config.mount
+After=config.mount
+
+[Service]
+EnvironmentFile=/etc/default/web888d
+ExecStart=/usr/bin/web888d $WEB888D_ARGS --safe
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
