@@ -22,8 +22,9 @@
 # -). Default web888.
 #hostname = web888
 
-# An SSH public key for root (one line, as in authorized_keys). There is
-# no other way to log in; without a key, SSH is off.
+# An SSH public key for root (one line, as in authorized_keys). For more
+# people, one ssh_key line each. There is no other way to log in; without
+# a key, SSH is off.
 #ssh_key =
 
 # The FPGA bitstream: channelizer (the default: the whole band in bins,

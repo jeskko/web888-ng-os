@@ -55,7 +55,7 @@ What the image is:
   * SSH is Dropbear on glibc, key only (`-s`): not affected by the musl
     OpenSSH `*`-password bypass (sshhole.com, 2026-11).
 * **Owner settings** go in `web888.txt` on the FAT (`web888-setup`):
-  * network, hostname, admin password, an SSH key and the bitstream;
+  * network, hostname, admin password, SSH keys and the bitstream;
   * optional tunnels to the Internet (frp, Cloudflare Tunnel, rathole or
     chisel): `docs/tunnels.md`.
   * `web888-setup.log` next to the file says what was applied.

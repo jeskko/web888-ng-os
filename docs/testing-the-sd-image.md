@@ -38,7 +38,8 @@ emulator can't check.
    * `network = static`, with `address`, `gateway` and `dns`, if your
      network has no DHCP server. The default is DHCP.
    * `ssh_key = ssh-ed25519 AAAA...`: your SSH public key, if you want a
-     shell on the unit (`ssh root@<unit>`). Without a key, SSH is off.
+     shell on the unit (`ssh root@<unit>`); one `ssh_key` line per key.
+     Without a key, SSH is off.
    * `bitstream = standard`: the standard bitstream (12 receivers),
      instead of the channelizer, the default since v0.7.0 (the whole band
      in bins, 32 receivers, zoomed waterfalls from the FPGA). Before
