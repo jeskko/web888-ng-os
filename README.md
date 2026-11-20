@@ -30,8 +30,10 @@ loader updated when the owner asks, the owner's guide; web888d v0.13.0),
 v0.11.0 (web888d v0.14.0: decoders in the browser, AM AGC speeds,
 24 kS/s audio), v0.12.0 (web888d v0.15.0: listener tools, Opus
 audio, HF propagation forecasts, ADC overload events, an info page,
-access limits; every CVE in the image assessed) and v0.13.0 (web888d
-v0.16.0: the page in Finnish, Swedish and German, a Config box).
+access limits; every CVE in the image assessed), v0.13.0 (web888d
+v0.16.0: the page in Finnish, Swedish and German, a Config box) and
+v0.14.0 (Linux 6.18.64; chrony keeps the clock, with a reference-clock
+socket for the receiver's LF time-code stations).
 
 What the image is:
 
