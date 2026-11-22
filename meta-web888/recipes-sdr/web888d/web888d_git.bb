@@ -12,7 +12,7 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d.default \
            "
 # main after v0.16.0: time sources (LF/HF time-code stations to chrony, EFR, NTP for the LAN, pooled samples)
-SRCREV = "55d9397cacdf4cbe515bcd010a1181265f947020"
+SRCREV = "787b84a6b5e8ad47176670db6bb76d0c038df142"
 PV = "0.16.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"
