@@ -11,8 +11,8 @@ SRC_URI = "git://github.com/jeskko/web888-ng.git;protocol=https;branch=main \
            file://web888d-safe.service \
            file://web888d.default \
            "
-# v0.15.0 (listener tools, Opus, packed waterfall, propagation, ADC overload events, info page, access limits)
-SRCREV = "ad3d6152a3b5ff3179ff9884b864eec57ed39bf0"
+# main after v0.16.0: time sources (LF/HF time-code stations to chrony, EFR, NTP for the LAN, pooled samples)
+SRCREV = "55d9397cacdf4cbe515bcd010a1181265f947020"
 PV = "0.16.0"
 
 S = "${UNPACKDIR}/${BB_GIT_DEFAULT_DESTSUFFIX}"

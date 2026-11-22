@@ -120,7 +120,7 @@ Out to the Internet, each only when its setting is on:
 | `spothole.app` (HTTPS) | live DX cluster spots shown on the spectrum | `dxspots.enabled` (on) |
 | `report.pskreporter.info` (UDP 4739) | uploading FT8/FT4 spots from the skimmers | `report.pskreporter` (off; needs `station.callsign` and `station.locator`) |
 | `wsprnet.org` (HTTP) | uploading WSPR spots | `report.wsprnet` (off; the same) |
-| `time1-4.google.com` (NTP) | the clock (chrony; the time-code stations web888d receives also feed it) | always |
+| `time1-4.google.com` (NTP) | the clock (chrony; the time-code stations web888d receives also feed it: see below) | always |
 | your tunnel's server, or Cloudflare | the receiver from the Internet | a tunnel in `web888.txt` (none) |
 | your gpsd | the locator from GPS | `station.gpsd` (none) |
 
@@ -128,7 +128,32 @@ On the local network: DHCP (unless static), mDNS (`<hostname>.local`,
 UDP 5353), and the unit's own services: the web page and the admin pages
 on TCP 8073 (HTTP and HTTPS on the same port, with the unit's own
 certificate), HPSDR clients on UDP 1024 (`hpsdr.enabled`, on), SSH on
-TCP 22 only with a key in `web888.txt`.
+TCP 22 only with a key in `web888.txt`, and NTP on UDP 123 only when
+**Admin → Clock → NTP for the local network** is on (`timesync.serve_lan`,
+off).
+
+### The clock without the Internet
+
+The board has no battery-backed clock. chrony sets it from the NTP
+servers above and, through web888d, from the time-code stations the
+receiver hears (`timecode.enabled`; `timecode.region = "auto"` picks the
+stations in reach of `station.locator`: DCF77, MSF, RBU, TDF and EFR's
+DCF39 in Europe, WWVB in North America, JJY and BPC in East Asia). While
+NTP answers it leads; without the Internet the stations carry the
+clock, typically to a few tenths of a millisecond, worse around dawn
+and dusk, when web888d pools the less sure minutes (up to 10) before it
+hands chrony a sample. With no station received (and no NTP) the clock
+runs on its own crystal and drifts.
+
+To use the receiver as the shack's clock where the Internet is poor (a
+DXpedition), turn on **NTP for the local network** on the Clock tab and
+point the other computers' NTP clients at the unit. Read the warning
+first: every device on a private or link-local address can then ask it
+the time, so on a shared network (hotel, campsite) that is everyone;
+never forward UDP 123 to it from the Internet. chrony drops requests
+from a client asking more often than every 8 s on average. When chrony
+has no usable source it answers as unsynchronised, and clients ignore
+it.
 
 Listeners' browsers fetch the page and its data from the unit only.
 
