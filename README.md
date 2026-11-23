@@ -7,37 +7,39 @@ Part of web888-ng, together with
 QEMU virtual Web-888) and [web888-ng](https://github.com/jeskko/web888-ng)
 (the `web888d` server).
 
-Status: **released for testers** (pre-releases on the Releases page).
-v0.2.0's SD card image has booted on a Web-888 from the card (a tester's
-unit, 2026-10-30), with the right RF frequencies, and the same unit has
-run web888d v0.11.0 with the channelizer from its card (2026-11-14); most testing is still
-in the emulator of web888-ng-hw. Releases so far: v0.1.0 (the first SD
-card image), v0.2.0 (a second image with the channelizer bitstream),
-v0.3.0 (updates over the network, tunnels, web888d v0.6.0), v0.4.0 (one
-image for both bitstreams; web888d v0.7.0 with the phone layout and
-frequency labels), v0.5.0 (web888d v0.8.0: KiwiSDR clients such as
-kiwirecorder and SuperSDR), v0.6.0 (the channelizer with zoom spectra
-in the FPGA, web888d v0.9.0), v0.7.0 (the channelizer by default;
-VHF reception, experimental: `band = vhf`; web888d v0.10.0 with NBFM)
-v0.8.0 (web888d v0.11.0: FT8, FT4 and WSPR decoded in the browser,
-skimmers on less CPU), v0.9.0 (web888d v0.12.0: live DX spots, a map
-of the stations heard, OS updates from the admin page, metrics) and
-v0.9.1 (security: kernel 6.18.63, newer packages, unused ones removed),
-v0.9.2 (no unassessed CVEs of CVSS 7.0 or more), v0.9.3 (safe mode:
-a unit that keeps failing to start stays reachable; web888d v0.12.1),
-v0.10.0 (logs and a settings backup on the admin page, the card's boot
-loader updated when the owner asks, the owner's guide; web888d v0.13.0),
-v0.11.0 (web888d v0.14.0: decoders in the browser, AM AGC speeds,
-24 kS/s audio), v0.12.0 (web888d v0.15.0: listener tools, Opus
-audio, HF propagation forecasts, ADC overload events, an info page,
-access limits; every CVE in the image assessed), v0.13.0 (web888d
-v0.16.0: the page in Finnish, Swedish and German, a Config box),
-v0.14.0 (Linux 6.18.64; chrony keeps the clock, with a reference-clock
-socket for the receiver's LF time-code stations) and v0.15.0 (web888d
-v0.17.0: the receiver as a clock, time-code stations to chrony, NTP
-for the local network).
+## Status
 
-What the image is:
+**Released for testers:** pre-releases are on the Releases page.
+
+* **On hardware:**
+  * v0.2.0's SD card image booted on a tester's Web-888 from the card on
+    2026-10-30, with the right RF frequencies.
+  * The same unit ran web888d v0.11.0 with the channelizer from its card
+    on 2026-11-14.
+* **Most testing** is still in the emulator of web888-ng-hw.
+
+| Release | web888d | What's new |
+|---|---|---|
+| v0.15.0 | v0.17.0 | The receiver as a clock: time-code stations to chrony, NTP for the local network |
+| v0.14.0 | | Linux 6.18.64; chrony keeps the clock, with a reference-clock socket for the receiver's LF time-code stations |
+| v0.13.0 | v0.16.0 | The page in Finnish, Swedish and German; a Config box |
+| v0.12.0 | v0.15.0 | Listener tools, Opus audio, HF propagation forecasts, ADC overload events, an info page, access limits; every CVE in the image assessed |
+| v0.11.0 | v0.14.0 | Decoders in the browser, AM AGC speeds, 24 kS/s audio |
+| v0.10.0 | v0.13.0 | Logs and a settings backup on the admin page; the card's boot loader updated when the owner asks; the owner's guide |
+| v0.9.3 | v0.12.1 | Safe mode: a unit that keeps failing to start stays reachable |
+| v0.9.2 | | No unassessed CVEs of CVSS 7.0 or more |
+| v0.9.1 | | Security: kernel 6.18.63, newer packages, unused ones removed |
+| v0.9.0 | v0.12.0 | Live DX spots, a map of the stations heard, OS updates from the admin page, metrics |
+| v0.8.0 | v0.11.0 | FT8, FT4 and WSPR decoded in the browser; skimmers on less CPU |
+| v0.7.0 | v0.10.0 | The channelizer by default; VHF reception (experimental: `band = vhf`); NBFM |
+| v0.6.0 | v0.9.0 | The channelizer with zoom spectra in the FPGA |
+| v0.5.0 | v0.8.0 | KiwiSDR clients such as kiwirecorder and SuperSDR |
+| v0.4.0 | v0.7.0 | One image for both bitstreams; the phone layout and frequency labels |
+| v0.3.0 | v0.6.0 | Updates over the network, tunnels |
+| v0.2.0 | | A second image with the channelizer bitstream |
+| v0.1.0 | | The first SD card image |
+
+## What the image is
 
 * **Boot:** U-Boot SPL with our PS7 initialisation as `BOOT.BIN`, then
   U-Boot, which sets the ADC clock (Si5351, 122.88 MHz) and picks root
