@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: MIT
 # Backported from OpenEmbedded-Core master (34991d0, 2026-11-09) for CVE
 # fixes that wrynose doesn't have yet (licence lines in wrynose's "&"
-# syntax). Drop it when wrynose catches up.
+# syntax), then moved to 2.11.0 (2026-11-25: CVE-2026-124317,
+# CVE-2026-128241, CVE-2026-134703; the tarball's signature checked
+# against Sebastian Pipping's key 3176EF7D...9AF37285). Drop it when
+# wrynose catches up.
 
 SUMMARY = "A stream-oriented XML parser library"
 DESCRIPTION = "Expat is an XML parser library written in C. It is a stream-oriented parser in which an application registers handlers for things the parser might find in the XML document (like start tags)"
@@ -20,7 +23,7 @@ SRC_URI = "${GITHUB_BASE_URI}/download/R_${VERSION_TAG}/expat-${PV}.tar.xz  \
 GITHUB_BASE_URI = "https://github.com/libexpat/libexpat/releases/"
 UPSTREAM_CHECK_REGEX = "releases/tag/R_(?P<pver>.+)"
 
-SRC_URI[sha256sum] = "c624ba2998fc65df1163a49641ff3f9ab73138b11641d92c86bee0fb01b1bc7f"
+SRC_URI[sha256sum] = "61e7614b602201c28a189dafee78f5bceaee192bbde46a930752ff09cf5542fa"
 
 EXTRA_OECMAKE:class-native += "-DEXPAT_BUILD_DOCS=OFF"
 
@@ -37,7 +40,3 @@ BBCLASSEXTEND += "native nativesdk"
 
 CVE_PRODUCT = "expat libexpat"
 
-# Not fixed in 2.10.0 yet (2026-11-17). The image's users of libexpat are
-# dbus and avahi-daemon; xmlwf (expat-bin) is not installed.
-CVE_STATUS[CVE-2026-128241] = "not-applicable-config: in xmlwf, which the image doesn't install"
-CVE_STATUS[CVE-2026-124317] = "not-applicable-config: only with an application's unknown-encoding handler; no program in the image registers one (XML_SetUnknownEncodingHandler)"

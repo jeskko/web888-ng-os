@@ -8,9 +8,9 @@ CVE_STATUS[CVE-2026-5450] = "backported-patch: release/2.43/master 4070d808 (sca
 CVE_STATUS[CVE-2026-5928] = "backported-patch: release/2.43/master 2890b35c (ungetwc on a byte stream, BZ #33998)"
 CVE_STATUS[CVE-2026-19499] = "backported-patch: release/2.43/master 713998bf (strfmon right-justification, bug 34510)"
 CVE_STATUS[CVE-2026-84243] = "backported-patch: release/2.43/master 45e49b1e (intl: LANGUAGE path traversal, BZ #17142)"
-# No program in the image calls these (their dynamic imports, 2026-11-17)
-CVE_STATUS[CVE-2026-115819] = "not-applicable-config: the wide scanf functions (swscanf, fwscanf, wscanf, ...), which no program in the image calls"
+CVE_STATUS[CVE-2026-100290] = "backported-patch: release/2.43/master e6ae66ce (regcomp/regexec double free after a failed allocation, BZ 34991)"
+CVE_STATUS[CVE-2026-115819] = "backported-patch: release/2.43/master 124e9adc (wide scanf %s and %[ double null terminator, BZ 34989)"
+CVE_STATUS[CVE-2026-126765] = "backported-patch: release/2.43/master 95a049c9 (glob double free after a failed allocation, BZ 34993)"
+CVE_STATUS[CVE-2026-121758] = "backported-patch: release/2.43/master 5f7cc102 (ISO-2022-CN-EXT SO without a designation, bug 34774)"
+# No program in the image calls this (its dynamic imports, 2026-11-17)
 CVE_STATUS[CVE-2010-4756] = "not-applicable-config: glob() with an attacker's pattern (an FTP daemon's STAT); no program in the image calls glob()"
-# The scan of 2026-11-20 (the image's dynamic imports and files)
-CVE_STATUS[CVE-2026-126765] = "not-applicable-config: glob() after a failed allocation; no program in the image calls glob()"
-CVE_STATUS[CVE-2026-121758] = "not-applicable-config: the ISO-2022-CN-EXT converter is a gconv module, and the image installs none (no /usr/lib/gconv)"

@@ -8,7 +8,7 @@
 CVE_STATUS_GROUPS += "CVE_STATUS_WEB888_OPENSSL_GCMSIV CVE_STATUS_WEB888_OPENSSL_QUIC CVE_STATUS_WEB888_OPENSSL_CMS"
 CVE_STATUS_WEB888_OPENSSL_GCMSIV = "CVE-2026-88823 CVE-2026-95692"
 CVE_STATUS_WEB888_OPENSSL_GCMSIV[status] = "ignored: AES-GCM-SIV, which nothing in the image uses (only the root-only openssl tool could be told to)"
-CVE_STATUS_WEB888_OPENSSL_QUIC = "CVE-2026-95691 CVE-2026-88822 CVE-2026-124709 CVE-2026-107494"
+CVE_STATUS_WEB888_OPENSSL_QUIC = "CVE-2026-95691 CVE-2026-88822 CVE-2026-124709 CVE-2026-107494 CVE-2026-84785"
 CVE_STATUS_WEB888_OPENSSL_QUIC[status] = "ignored: OpenSSL QUIC (client and server), which nothing in the image uses (curl is built without HTTP/3: no ngtcp2/nghttp3, no openssl-quic)"
 CVE_STATUS_WEB888_OPENSSL_CMS = "CVE-2026-107496"
 CVE_STATUS_WEB888_OPENSSL_CMS[status] = "ignored: CMS_encrypt with an attacker's recipient certificate; on the device rauc only verifies and decrypts bundles (rauc encrypt runs on the build host with the operator's certificates), and the openssl tool is root only"

@@ -11,3 +11,8 @@ CVE_STATUS_WEB888_BUSYBOX[status] = "not-reachable: needs a crafted awk program 
 # nothing on the unit extracts archives (RAUC bundles are signed
 # SquashFS), only root could by hand
 CVE_STATUS[CVE-2026-92205] = "not-reachable: needs a crafted archive extracted on the unit; no service extracts archives, and only root can run commands"
+# The scan of 2026-11-25: path traversal in the FTP and TFTP servers.
+# Neither applet is built (the image's busybox has only the tftp client;
+# no ftpd or tftpd link, none in the binary's applet list).
+CVE_STATUS[CVE-2026-136411] = "not-applicable-config: tftpd, which this busybox doesn't build (only the tftp client)"
+CVE_STATUS[CVE-2026-136442] = "not-applicable-config: ftpd, which this busybox doesn't build"

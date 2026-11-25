@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Xilinx's 2026.2 kernel (linux-xlnx xlnx_rebase_v6.18_LTS, 6.18.40; the
 # recipe as meta-xilinx's wrynose-next has it) with the stable updates up
-# to 6.18.64 on top: about 3400 of the CVEs open in 6.18.40 are fixed in
-# 6.18.41 to 6.18.64, which Xilinx hasn't merged yet (6.18.64: 205 more,
-# 2026-11-20).
+# to 6.18.65 on top: about 3400 of the CVEs open in 6.18.40 are fixed in
+# 6.18.41 to 6.18.65, which Xilinx hasn't merged yet (6.18.64: 205 more,
+# 2026-11-20; 6.18.65: 7 of the 11 the scan of 2026-11-25 had open).
 #
-# linux-6.18.64-stable.patch.xz is stable v6.18.64 merged into Xilinx's
+# linux-6.18.65-stable.patch.xz is stable v6.18.65 merged into Xilinx's
 # tag, as one commit; scripts/kernel-stable.sh makes it again from the two
 # public trees. Where Xilinx has its own version of a file and the merge
 # conflicts, Xilinx's file is kept and the stable changes to it are left
 # out (the list is in the patch's message). Drop this recipe when
 # meta-xilinx has a kernel at least this new.
-LINUX_VERSION = "6.18.64"
+LINUX_VERSION = "6.18.65"
 YOCTO_META ?= "git://git.yoctoproject.org/yocto-kernel-cache;type=kmeta;name=meta;branch=yocto-6.18;destsuffix=yocto-kmeta"
 KBRANCH = "xlnx_rebase_v6.18_LTS"
 SRCREV = "85261a88dc955839e3dabe5339b3a8d86ec545db"
@@ -30,8 +30,8 @@ PV .= "+v2026.2"
 # ours, then linux-xlnx.inc's own files (linux-xlnx-kmeta, ...) next to
 # it in meta-xilinx-core
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:${@os.path.dirname(bb.utils.which(d.getVar('BBPATH'), 'recipes-kernel/linux/linux-xlnx.inc'))}/linux-xlnx:"
-SRC_URI += "file://linux-6.18.64-stable.patch.xz"
-# the version check reads the Makefile: after the patch makes it 6.18.64
+SRC_URI += "file://linux-6.18.65-stable.patch.xz"
+# the version check reads the Makefile: after the patch makes it 6.18.65
 addtask kernel_version_sanity_check after do_patch
 
 # Fixed in stable after 6.18.40 only in files where Xilinx's version is
@@ -45,7 +45,7 @@ CVE_STATUS[CVE-2026-98767] = "not-applicable-config: USB dwc3 (drivers/usb/dwc3)
 CVE_STATUS[CVE-2026-99028] = "not-applicable-config: AXI Ethernet (drivers/net/ethernet/xilinx/xilinx_axienet*), built but no such device: the FPGA design has none, the board's Ethernet is the PS GEM"
 CVE_STATUS[CVE-2026-89788] = "not-applicable-config: ksmbd, the in-kernel SMB server (fs/smb/server), not built (CONFIG_SMB_SERVER is not set)"
 
-# Not fixed in 6.18.64 yet; the mainline fix applies as it is
+# Not fixed in 6.18.65 yet; the mainline fix applies as it is
 SRC_URI += "file://CVE-2026-72397.patch"
 
 # Open in 6.18.63 (the daily scan), checked against this kernel's
