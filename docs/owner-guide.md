@@ -33,8 +33,8 @@ that writes SD cards (Raspberry Pi Imager, balenaEtcher, `bmaptool` or
      `web888-password.txt` on the card.
    * `network = static` with `address`, `gateway` and `dns`, if there is
      no DHCP server (the default is DHCP).
-   * `ssh_key`: your SSH public key, for a shell (`ssh root@<unit>`).
-     Without a key, SSH is off.
+   * `ssh_key`: your SSH public key, for a shell (`ssh root@<unit>`);
+     one `ssh_key` line per key. Without a key, SSH is off.
    * Tunnels, to reach the receiver from the Internet without opening a
      port on your router: [tunnels.md](tunnels.md).
 4. Save, eject, power the Web-888 off, put the card in, power on.

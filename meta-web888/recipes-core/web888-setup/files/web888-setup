@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # web888-setup: the owner's settings from web888.txt on the SD card's FAT
 # partition (/boot), applied at every boot before the network, SSH and
-# web888d start: the network, the hostname, the admin password and an
-# SSH key; a stable MAC address when the EEPROM has none. What it did
+# web888d start: the network, the hostname, the admin password and
+# SSH keys; a stable MAC address when the EEPROM has none. What it did
 # goes to web888-setup.log next to web888.txt. Also the bitstream web888d
 # loads (standard or channelizer), as its command line in /run, and the
 # tunnels to the Internet (frp, cloudflared, rathole, chisel: each
@@ -124,7 +124,11 @@ read_settings() {
 		gateway) gateway=$val ;;
 		dns) dns=$val ;;
 		hostname) hostname=$val ;;
-		ssh_key) ssh_key=$val ;;
+		ssh_key)
+			# one key per line; several lines, several keys
+			[ -n "$val" ] && ssh_key="$ssh_key$val
+"
+			;;
 		bitstream) bitstream=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
 		band) band=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
 		safe) safe=$(printf '%s' "$val" | tr 'A-Z' 'a-z') ;;
@@ -402,18 +406,34 @@ ssh_setting() {
 		say "SSH: off (no ssh_key)"
 		return
 	fi
-	case $ssh_key in
-	ssh-* | ecdsa-* | sk-*) ;;
-	*)
-		problem "ssh_key: not a public key line (ssh-ed25519 AAAA... or similar); SSH stays off"
+	keys="" nkeys=0 nk=0
+	while IFS= read -r k; do
+		[ -n "$k" ] || continue
+		nk=$((nk + 1))
+		case $k in
+		ssh-* | ecdsa-* | sk-*)
+			keys="$keys$k
+"
+			nkeys=$((nkeys + 1))
+			;;
+		*) problem "ssh_key ($nk.): not a public key line (ssh-ed25519 AAAA... or similar); not used" ;;
+		esac
+	done <<EOF_KEYS
+$ssh_key
+EOF_KEYS
+	if [ $nkeys = 0 ]; then
+		problem "ssh_key: no usable key; SSH stays off"
 		return
-		;;
-	esac
+	fi
 	mkdir -p "$SSHDIR"
 	chmod 700 "$SSHDIR"
-	printf '%s\n' "$ssh_key" > "$SSHDIR/authorized_keys"
+	printf '%s' "$keys" > "$SSHDIR/authorized_keys"
 	chmod 600 "$SSHDIR/authorized_keys"
-	say "SSH: on for root with the key from web888.txt"
+	if [ $nkeys = 1 ]; then
+		say "SSH: on for root with the key from web888.txt"
+	else
+		say "SSH: on for root with $nkeys keys from web888.txt"
+	fi
 }
 
 # ------------------------------------------------------------ safe mode
