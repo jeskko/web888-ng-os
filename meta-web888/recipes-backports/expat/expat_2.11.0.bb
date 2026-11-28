@@ -40,3 +40,9 @@ BBCLASSEXTEND += "native nativesdk"
 
 CVE_PRODUCT = "expat libexpat"
 
+
+# In the image only dbus-daemon (and its launch helper) and avahi-daemon
+# link libexpat, and they parse only their own root-owned configuration
+# and service files with it: no XML from outside reaches the parser.
+CVE_STATUS[CVE-2026-137951] = "not-applicable-config: needs XML_GE=0 with XML_UNICODE; built with the defaults (XML_GE=1, char)"
+CVE_STATUS[CVE-2026-137992] = "not-reachable: duplicate ATTLIST declarations in an internal DTD subset; libexpat parses only dbus's and avahi's root-owned config files here (upstream fix PR #1537 not merged yet)"
