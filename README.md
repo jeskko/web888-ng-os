@@ -20,6 +20,7 @@ QEMU virtual Web-888) and [web888-ng](https://github.com/jeskko/web888-ng)
 
 | Release | web888d | What's new |
 |---|---|---|
+| v0.16.0 | v0.18.0 | Signals explained and labelled, neural noise reduction (experimental), DGPS beacons, twin passband tuning; Linux 6.18.65 |
 | v0.15.0 | v0.17.0 | The receiver as a clock: time-code stations to chrony, NTP for the local network |
 | v0.14.0 | | Linux 6.18.64; chrony keeps the clock, with a reference-clock socket for the receiver's LF time-code stations |
 | v0.13.0 | v0.16.0 | The page in Finnish, Swedish and German; a Config box |

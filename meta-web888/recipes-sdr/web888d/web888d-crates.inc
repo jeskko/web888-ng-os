@@ -426,6 +426,8 @@ SRC_URI[zmij-1.0.23.sha256sum] = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac8
 
 SRC_URI += " \
     git://github.com/jeskko/hfcast-engine;protocol=https;nobranch=1;name=hfcast;destsuffix=cargo-git/hfcast \
+    git://github.com/jeskko/ionochannel;protocol=https;nobranch=1;name=ionochannel;destsuffix=cargo-git/ionochannel \
 "
 SRCREV_hfcast = "bf34e8f9f375e190ed43fcac19f25d800992e0e6"
-SRCREV_FORMAT = "default_hfcast"
+SRCREV_ionochannel = "74818342233a381aa0f81b43902aedf2808a2fab"
+SRCREV_FORMAT = "default_hfcast_ionochannel"
